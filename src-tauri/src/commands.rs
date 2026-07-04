@@ -47,6 +47,45 @@ pub async fn ingest_files(
 }
 
 #[tauri::command]
+pub async fn list_connector_types(
+    app: tauri::AppHandle,
+) -> Result<serde_json::Value, String> {
+    tauri::async_runtime::spawn_blocking(move || pipeline::list_connector_types(&app))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn connector_list_objects(
+    app: tauri::AppHandle,
+    connector_type: String,
+    config: serde_json::Value,
+    prefix: Option<String>,
+) -> Result<serde_json::Value, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        pipeline::connector_list_objects(&app, connector_type, config, prefix)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn ingest_from_connector(
+    app: tauri::AppHandle,
+    collection_id: String,
+    connector_type: String,
+    config: serde_json::Value,
+    keys: Option<Vec<String>>,
+    prefix: Option<String>,
+) -> Result<Vec<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        pipeline::ingest_from_connector(&app, collection_id, connector_type, config, keys, prefix)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 pub async fn process_batch(
     app: tauri::AppHandle,
     file_ids: Option<Vec<String>>,
