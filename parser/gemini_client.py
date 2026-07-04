@@ -33,7 +33,28 @@ MIME_MAP = {
 BACKUP_DSL_PATH = Path(__file__).parent.parent / "registry" / "backup_dsl.json"
 
 
-def generate_dsl(file_path: Path, doc_type: str) -> dict:
+def _estimate_cost(prompt_tokens: int, completion_tokens: int) -> float:
+    input_rate = float(os.getenv("OPENROUTER_INPUT_COST_PER_M", "0.10"))
+    output_rate = float(os.getenv("OPENROUTER_OUTPUT_COST_PER_M", "0.40"))
+    return (prompt_tokens / 1_000_000) * input_rate + (completion_tokens / 1_000_000) * output_rate
+
+
+def _usage_from_response(response) -> dict | None:
+    usage = getattr(response, "usage", None)
+    if not usage:
+        return None
+    prompt_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
+    completion_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
+    total_tokens = int(getattr(usage, "total_tokens", 0) or (prompt_tokens + completion_tokens))
+    return {
+        "promptTokens": prompt_tokens,
+        "completionTokens": completion_tokens,
+        "totalTokens": total_tokens,
+        "costUsd": round(_estimate_cost(prompt_tokens, completion_tokens), 6),
+    }
+
+
+def generate_dsl(file_path: Path, doc_type: str) -> tuple[dict, dict | None]:
     """Generate extraction DSL via OpenRouter, backup file, or heuristics."""
     api_key = os.getenv("OPENROUTER_API_KEY")
     model = os.getenv("OPENROUTER_MODEL", DEFAULT_MODEL)
@@ -41,11 +62,11 @@ def generate_dsl(file_path: Path, doc_type: str) -> dict:
 
     if api_key:
         try:
-            text = _call_openrouter(api_key, model, file_path, doc_type, fields)
+            text, usage = _call_openrouter(api_key, model, file_path, doc_type, fields)
             match = re.search(r"\{.*\}", text, re.DOTALL)
             if match:
                 print("DSL_SOURCE: openrouter", file=sys.stderr)
-                return json.loads(match.group())
+                return json.loads(match.group()), usage
             print("DSL_SOURCE: openrouter_invalid_json", file=sys.stderr)
         except Exception as e:
             print(f"DSL_SOURCE: openrouter_error ({e})", file=sys.stderr)
@@ -53,15 +74,15 @@ def generate_dsl(file_path: Path, doc_type: str) -> dict:
     backup = _load_backup_dsl(doc_type)
     if backup:
         print("DSL_SOURCE: backup", file=sys.stderr)
-        return backup
+        return backup, None
 
     print("DSL_SOURCE: fallback", file=sys.stderr)
-    return _fallback_dsl(file_path, doc_type, fields)
+    return _fallback_dsl(file_path, doc_type, fields), None
 
 
 def _call_openrouter(
     api_key: str, model: str, file_path: Path, doc_type: str, fields: list[str]
-) -> str:
+) -> tuple[str, dict | None]:
     import pdfplumber
     from openai import OpenAI
 
@@ -124,7 +145,8 @@ def _call_openrouter(
         },
     )
 
-    return (response.choices[0].message.content or "").strip()
+    text = (response.choices[0].message.content or "").strip()
+    return text, _usage_from_response(response)
 
 
 def _load_backup_dsl(doc_type: str) -> dict | None:

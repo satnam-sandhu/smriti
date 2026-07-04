@@ -1,12 +1,14 @@
 use crate::db::{
     get_collection, get_file, get_metrics as db_metrics, init_db, insert_collection,
     insert_failure, insert_file, list_collections as db_list_collections,
-    list_files, list_files_for_collection, update_file, with_db,
+    list_failed_files as db_list_failed_files, list_files, list_files_for_collection,
+    mark_file_reviewed as db_mark_file_reviewed, update_file, with_db,
+    get_pipeline_stats as db_get_pipeline_stats,
 };
 use crate::emit_metrics;
 use crate::models::{
-    AnalyticsQueryResult, Collection, CollectionSummary, FileDetail, FileRecord, FileStatus,
-    ParserOutput, PipelineMetrics,
+    AnalyticsQueryResult, Collection, CollectionSummary, FailedFileReview, FileDetail, FileRecord, FileStatus,
+    ParserOutput, PipelineMetrics, PipelineStats,
 };
 use chrono::Utc;
 use sha2::{Digest, Sha256};
@@ -170,6 +172,9 @@ pub fn ingest_from_connector(
                 error_code: None,
                 error_detail: None,
                 accuracy_pct: None,
+                prompt_tokens: None,
+                completion_tokens: None,
+                ai_cost_usd: None,
             };
 
             insert_file(conn, &record, &now)?;
@@ -186,6 +191,158 @@ pub fn ingest_from_connector(
     emit_metrics(app);
     let _ = app.emit("collections:updated", ());
     Ok(ids)
+}
+
+pub fn list_failed_reviews(app: &AppHandle) -> Result<Vec<FailedFileReview>, String> {
+    with_db(app, |conn, workspace| {
+        let rows = db_list_failed_files(conn)?;
+        rows.into_iter()
+            .map(|(record, collection_name, timestamp, reviewed_at)| {
+                build_failed_review(
+                    workspace,
+                    &record,
+                    collection_name,
+                    timestamp,
+                    reviewed_at,
+                )
+            })
+            .collect()
+    })
+}
+
+pub fn mark_failed_review(app: &AppHandle, file_id: String) -> Result<(), String> {
+    with_db(app, |conn, _| {
+        let reviewed_at = Utc::now().to_rfc3339();
+        db_mark_file_reviewed(conn, &file_id, &reviewed_at)
+    })?;
+    emit_metrics(app);
+    let _ = app.emit("reviews:updated", ());
+    Ok(())
+}
+
+pub fn get_failed_review(
+    app: &AppHandle,
+    file_id: String,
+) -> Result<Option<FailedFileReview>, String> {
+    with_db(app, |conn, workspace| {
+        let record = get_file(conn, &file_id)?;
+        let Some(record) = record else {
+            return Ok(None);
+        };
+        if record.status != FileStatus::Failed {
+            return Ok(None);
+        }
+
+        let collection_name = record
+            .collection_id
+            .as_ref()
+            .and_then(|id| get_collection(conn, id).ok().flatten())
+            .map(|c| c.name);
+
+        let timestamp: String = conn
+            .query_row(
+                "SELECT timestamp FROM failures WHERE file_id = ?1 ORDER BY id DESC LIMIT 1",
+                rusqlite::params![file_id],
+                |r| r.get(0),
+            )
+            .unwrap_or_default();
+
+        let reviewed_at: Option<String> = conn
+            .query_row(
+                "SELECT reviewed_at FROM files WHERE id = ?1",
+                rusqlite::params![file_id],
+                |r| r.get(0),
+            )
+            .ok();
+
+        Ok(Some(build_failed_review(
+            workspace,
+            &record,
+            collection_name,
+            timestamp,
+            reviewed_at,
+        )?))
+    })
+}
+
+fn build_failed_review(
+    workspace: &PathBuf,
+    record: &FileRecord,
+    collection_name: Option<String>,
+    timestamp: String,
+    reviewed_at: Option<String>,
+) -> Result<FailedFileReview, String> {
+    let quarantine_path = resolve_quarantine_path(workspace, record);
+    let sidecar_path = sidecar_path_for(&quarantine_path);
+    let sidecar_json = fs::read_to_string(&sidecar_path)
+        .ok()
+        .and_then(|s| serde_json::from_str(&s).ok());
+
+    Ok(FailedFileReview {
+        file_id: record.id.clone(),
+        file_name: record.file_name.clone(),
+        collection_id: record.collection_id.clone(),
+        collection_name,
+        error_code: record
+            .error_code
+            .clone()
+            .unwrap_or_else(|| "UNKNOWN".into()),
+        error_detail: record.error_detail.clone(),
+        timestamp,
+        quarantine_path: canonical_path_str(&quarantine_path),
+        mime: record.mime.clone(),
+        bytes: record.bytes,
+        sidecar_json,
+        reviewed_at,
+    })
+}
+
+fn resolve_quarantine_path(workspace: &PathBuf, record: &FileRecord) -> PathBuf {
+    let quarantine = workspace
+        .join("quarantine")
+        .join(format!("{}_{}", record.id, record.file_name));
+    if quarantine.exists() {
+        return quarantine;
+    }
+    PathBuf::from(&record.bronze_path)
+}
+
+fn resolve_file_source_path(workspace: &PathBuf, record: &FileRecord) -> PathBuf {
+    let quarantine = workspace
+        .join("quarantine")
+        .join(format!("{}_{}", record.id, record.file_name));
+    if quarantine.exists() {
+        return quarantine;
+    }
+    let bronze = PathBuf::from(&record.bronze_path);
+    if bronze.exists() {
+        return bronze;
+    }
+    workspace
+        .join("bronze")
+        .join(format!("{}_{}", record.id, record.file_name))
+}
+
+fn canonical_path_str(path: &Path) -> String {
+    if path.exists() {
+        fs::canonicalize(path)
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_else(|_| path.to_string_lossy().to_string())
+    } else {
+        path.to_string_lossy().to_string()
+    }
+}
+
+fn sidecar_path_for(quarantine_path: &Path) -> PathBuf {
+    let file_name = quarantine_path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("");
+    if let Some(stem) = file_name.rsplit_once('.').map(|(s, _)| s) {
+        quarantine_path.with_file_name(format!("{stem}.error.json"))
+    } else {
+        quarantine_path.with_extension("error.json")
+    }
 }
 
 pub fn create_collection(
@@ -221,6 +378,8 @@ pub fn get_collection_table(
     app: &AppHandle,
     collection_id: String,
 ) -> Result<AnalyticsQueryResult, String> {
+    ensure_collection_gold_parquet(app, &collection_id)?;
+
     let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
     let gold_dir = collection_gold_dir(&workspace, &collection_id);
 
@@ -230,7 +389,7 @@ pub fn get_collection_table(
 
     let gold_glob = collection_gold_glob(&workspace, &collection_id);
     let sql = format!("SELECT * FROM read_parquet('{gold_glob}')");
-    run_duckdb_query(app, &sql, &gold_glob)
+    run_duckdb_query(app, &sql, &gold_glob, &workspace)
 }
 
 pub fn ingest_files(
@@ -278,6 +437,9 @@ pub fn ingest_files(
                 error_code: None,
                 error_detail: None,
                 accuracy_pct: None,
+                prompt_tokens: None,
+                completion_tokens: None,
+                ai_cost_usd: None,
             };
 
             insert_file(conn, &record, &now)?;
@@ -331,7 +493,7 @@ pub fn process_batch(
                     update_file(conn, &record)?;
                     let ts = Utc::now().to_rfc3339();
                     insert_failure(conn, &record.id, &record.file_name, &err.code, &err.detail, &ts)?;
-                    quarantine_file(workspace, &record)?;
+                    quarantine_file(workspace, &mut record)?;
                     Ok(())
                 })?;
                 let _ = app.emit("file:failed", &record);
@@ -412,6 +574,11 @@ fn process_single_file(app: &AppHandle, record: &mut FileRecord) -> Result<FileR
     record.accuracy_pct = parser_output.accuracy_pct;
     record.error_code = None;
     record.error_detail = None;
+    if let Some(usage) = parser_output.ai_usage {
+        record.prompt_tokens = Some(usage.prompt_tokens);
+        record.completion_tokens = Some(usage.completion_tokens);
+        record.ai_cost_usd = Some(usage.cost_usd);
+    }
 
     Ok(record.clone())
 }
@@ -560,21 +727,30 @@ fn is_likely_corrupt(path: &Path) -> bool {
     false
 }
 
-fn quarantine_file(workspace: &PathBuf, record: &FileRecord) -> Result<(), String> {
+fn quarantine_file(workspace: &PathBuf, record: &mut FileRecord) -> Result<(), String> {
     let src = PathBuf::from(&record.bronze_path);
     if !src.exists() {
+        let existing = workspace
+            .join("quarantine")
+            .join(format!("{}_{}", record.id, record.file_name));
+        if existing.exists() {
+            record.bronze_path = existing.to_string_lossy().to_string();
+        }
         return Ok(());
     }
     let dest = workspace
         .join("quarantine")
         .join(format!("{}_{}", record.id, record.file_name));
     fs::rename(&src, &dest).map_err(|e| e.to_string())?;
+    record.bronze_path = dest.to_string_lossy().to_string();
 
-    let sidecar = dest.with_extension("error.json");
+    let sidecar = sidecar_path_for(&dest);
     let payload = serde_json::json!({
         "fileId": record.id,
+        "fileName": record.file_name,
         "errorCode": record.error_code,
         "errorDetail": record.error_detail,
+        "collectionId": record.collection_id,
     });
     fs::write(sidecar, payload.to_string()).map_err(|e| e.to_string())?;
     Ok(())
@@ -582,6 +758,28 @@ fn quarantine_file(workspace: &PathBuf, record: &FileRecord) -> Result<(), Strin
 
 pub fn get_metrics(app: &AppHandle) -> Result<PipelineMetrics, String> {
     with_db(app, |conn, _| db_metrics(conn))
+}
+
+pub fn get_pipeline_stats(
+    app: &AppHandle,
+    start_date: Option<String>,
+    end_date: Option<String>,
+    activity_page: Option<u32>,
+    activity_page_size: Option<u32>,
+    failures_page: Option<u32>,
+    failures_page_size: Option<u32>,
+) -> Result<PipelineStats, String> {
+    with_db(app, |conn, _| {
+        db_get_pipeline_stats(
+            conn,
+            start_date.as_deref(),
+            end_date.as_deref(),
+            activity_page.unwrap_or(1),
+            activity_page_size.unwrap_or(10),
+            failures_page.unwrap_or(1),
+            failures_page_size.unwrap_or(5),
+        )
+    })
 }
 
 pub fn export_metrics_json(app: &AppHandle, metrics: &PipelineMetrics) -> Result<(), String> {
@@ -593,7 +791,7 @@ pub fn export_metrics_json(app: &AppHandle, metrics: &PipelineMetrics) -> Result
 }
 
 pub fn get_file_detail(app: &AppHandle, file_id: String) -> Result<Option<FileDetail>, String> {
-    with_db(app, |conn, _| {
+    with_db(app, |conn, workspace| {
         let record = get_file(conn, &file_id)?;
         let Some(record) = record else {
             return Ok(None);
@@ -605,12 +803,14 @@ pub fn get_file_detail(app: &AppHandle, file_id: String) -> Result<Option<FileDe
             .and_then(|p| fs::read_to_string(p).ok())
             .and_then(|s| serde_json::from_str(&s).ok());
 
+        let source_path = resolve_file_source_path(workspace, &record);
+
         Ok(Some(FileDetail {
             file_id: record.id,
             file_name: record.file_name,
             status: record.status,
             parser_path: record.parser_path,
-            bronze_path: record.bronze_path,
+            bronze_path: canonical_path_str(&source_path),
             silver_json: silver_json.clone(),
             gold_row: silver_json,
             accuracy_pct: record.accuracy_pct,
@@ -624,19 +824,32 @@ pub fn list_all_files(app: &AppHandle) -> Result<Vec<FileRecord>, String> {
     with_db(app, |conn, _| list_files(conn))
 }
 
-pub fn run_analytics_query(app: &AppHandle, sql: String) -> Result<AnalyticsQueryResult, String> {
+pub fn run_analytics_query(
+    app: &AppHandle,
+    sql: String,
+    collection_id: Option<String>,
+) -> Result<AnalyticsQueryResult, String> {
+    if let Some(ref collection_id) = collection_id {
+        ensure_collection_gold_parquet(app, collection_id)?;
+    }
+
     let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
-    let gold_glob = workspace
-        .join("gold/collections/*/*.parquet")
-        .to_string_lossy()
-        .to_string();
-    run_duckdb_query(app, &sql, &gold_glob)
+    let gold_glob = if let Some(ref collection_id) = collection_id {
+        collection_gold_glob(&workspace, collection_id)
+    } else {
+        workspace
+            .join("gold/collections/*/*.parquet")
+            .to_string_lossy()
+            .to_string()
+    };
+    run_duckdb_query(app, &sql, &gold_glob, &workspace)
 }
 
 fn run_duckdb_query(
     app: &AppHandle,
     sql: &str,
     gold_glob: &str,
+    workspace: &PathBuf,
 ) -> Result<AnalyticsQueryResult, String> {
     let project_root = resolve_project_root(app);
     let script = project_root.join("parser").join("analytics.py");
@@ -647,7 +860,6 @@ fn run_duckdb_query(
         PathBuf::from("python3")
     };
 
-    let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
     let db_path = workspace.join("analytics.duckdb");
 
     let output = Command::new(python)
@@ -658,6 +870,8 @@ fn run_duckdb_query(
         .arg(gold_glob)
         .arg("--db-path")
         .arg(&db_path)
+        .arg("--workspace")
+        .arg(workspace)
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -666,6 +880,35 @@ fn run_duckdb_query(
     }
 
     serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())
+}
+
+fn ensure_collection_gold_parquet(app: &AppHandle, collection_id: &str) -> Result<(), String> {
+    let files = with_db(app, |conn, _| list_files_for_collection(conn, collection_id))?;
+
+    for file in &files {
+        if file.status != FileStatus::Completed {
+            continue;
+        }
+
+        let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
+        let gold_file = collection_gold_dir(&workspace, collection_id).join(format!("{}.parquet", file.id));
+        if gold_file.exists() {
+            continue;
+        }
+
+        let Some(silver_path) = file.silver_path.as_ref() else {
+            continue;
+        };
+        let silver_json: serde_json::Value = fs::read_to_string(silver_path)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or(serde_json::json!({}));
+        let parser_path = file.parser_path.clone().unwrap_or(crate::models::ParserPath::Ai);
+
+        write_gold_parquet(app, file, &silver_json, &parser_path).map_err(|e| e.detail)?;
+    }
+
+    Ok(())
 }
 
 fn build_table_from_silver(

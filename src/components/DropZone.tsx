@@ -90,7 +90,7 @@ export function DropZone({ busy, processingCount, onIngest }: DropZoneProps) {
               Processing {processingCount} document
               {processingCount !== 1 ? "s" : ""}
             </p>
-            <span>Parsing, validating, and writing to Gold layer…</span>
+            <span>Parsing, validating, and writing to Gold layer...</span>
             <div className="progress-bar">
               <div className="progress-bar-fill" />
             </div>

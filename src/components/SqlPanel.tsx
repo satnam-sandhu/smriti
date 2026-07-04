@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { AnalyticsQueryResult } from "../../shared/types";
+import { ChevronIcon } from "./icons";
 
 interface SqlPanelProps {
   defaultSql: string;
+  collectionId?: string;
 }
 
 function ResultsTable({ result }: { result: AnalyticsQueryResult }) {
@@ -36,23 +38,32 @@ function ResultsTable({ result }: { result: AnalyticsQueryResult }) {
 }
 
 function formatCell(val: unknown): string {
-  if (val == null) return "ù";
+  if (val == null) return "-";
   if (typeof val === "object") return JSON.stringify(val);
   return String(val);
 }
 
-export function SqlPanel({ defaultSql }: SqlPanelProps) {
+export function SqlPanel({ defaultSql, collectionId }: SqlPanelProps) {
   const [open, setOpen] = useState(false);
   const [sql, setSql] = useState(defaultSql);
   const [result, setResult] = useState<AnalyticsQueryResult | null>(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setSql(defaultSql);
+    setResult(null);
+    setError(null);
+  }, [defaultSql, collectionId]);
+
   async function handleRun() {
     setRunning(true);
     setError(null);
     try {
-      const data = await invoke<AnalyticsQueryResult>("run_analytics_query", { sql });
+      const data = await invoke<AnalyticsQueryResult>("run_analytics_query", {
+        sql,
+        collectionId: collectionId ?? null,
+      });
       setResult(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -80,7 +91,7 @@ export function SqlPanel({ defaultSql }: SqlPanelProps) {
           <span>SQL Analytics</span>
           <span className="sql-badge">DuckDB</span>
         </span>
-        <span className="sql-chevron">ù</span>
+        <ChevronIcon open={open} />
       </button>
 
       {open && (
@@ -98,7 +109,7 @@ export function SqlPanel({ defaultSql }: SqlPanelProps) {
               onClick={handleRun}
               disabled={running}
             >
-              {running ? "Runningù" : "Run Query"}
+              {running ? "Running..." : "Run Query"}
             </button>
             <button type="button" className="btn btn-ghost" onClick={handleReset}>
               Reset

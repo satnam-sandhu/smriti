@@ -35,7 +35,7 @@ export function CollectionList({
 
       {loading ? (
         <div className="empty-state">
-          <p className="empty-state-title">Loading collections…</p>
+          <p className="empty-state-title">Loading collections...</p>
         </div>
       ) : collections.length === 0 ? (
         <div className="empty-state collections-empty">

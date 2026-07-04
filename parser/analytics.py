@@ -6,12 +6,64 @@ from __future__ import annotations
 import argparse
 import glob as glob_module
 import json
+import re
 import sys
 from pathlib import Path
 
 import duckdb
 
 GOLD_VIEW = "gold_finance"
+READ_PARQUET_RE = re.compile(
+    r"read_parquet\((['\"])(.*?)\1(\s*,|\s*\))",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def resolve_workspace_paths(sql: str, workspace: str | None) -> str:
+    """Turn workspace-relative gold paths into absolute paths for DuckDB."""
+    if not workspace:
+        return sql
+
+    ws = Path(workspace).resolve()
+
+    def repl(match: re.Match[str]) -> str:
+        quote = match.group(1)
+        path = match.group(2)
+        suffix = match.group(3)
+        normalized = path.replace("\\", "/")
+        if normalized.startswith("gold/"):
+            abs_path = (ws / normalized).as_posix().replace("'", "''")
+            return f"read_parquet('{abs_path}'{suffix}"
+        return match.group(0)
+
+    return READ_PARQUET_RE.sub(repl, sql)
+
+
+def ensure_union_by_name(sql: str) -> str:
+    """Mixed doc types produce different Parquet schemas — union columns across files."""
+    if "read_parquet(" not in sql or "union_by_name" in sql:
+        return sql
+
+    def repl(match: re.Match[str]) -> str:
+        quote = match.group(1)
+        path = match.group(2)
+        suffix = match.group(3)
+        if suffix.strip().startswith(","):
+            return match.group(0)
+        return f"read_parquet({quote}{path}{quote}, union_by_name=true)"
+
+    return READ_PARQUET_RE.sub(repl, sql)
+
+
+def apply_union_by_name(sql: str, gold_glob: str) -> str:
+    """Legacy helper: also patch exact GOLD_GLOB token replacements."""
+    sql = ensure_union_by_name(sql)
+    if "read_parquet(" in sql and "union_by_name" not in sql and "*" in gold_glob:
+        sql = sql.replace(
+            f"read_parquet('{gold_glob}')",
+            f"read_parquet('{gold_glob}', union_by_name=true)",
+        )
+    return sql
 
 
 def register_gold_view(db_path: str, gold_glob: str, view_name: str = GOLD_VIEW) -> None:
@@ -27,18 +79,14 @@ def register_gold_view(db_path: str, gold_glob: str, view_name: str = GOLD_VIEW)
     conn.close()
 
 
-def apply_union_by_name(sql: str, gold_glob: str) -> str:
-    """Mixed doc types produce different Parquet schemas — union columns across files."""
-    if "read_parquet(" in sql and "union_by_name" not in sql and "*" in gold_glob:
-        sql = sql.replace(
-            f"read_parquet('{gold_glob}')",
-            f"read_parquet('{gold_glob}', union_by_name=true)",
-        )
-    return sql
-
-
-def run_query(db_path: str | None, sql: str, gold_glob: str) -> dict:
+def run_query(
+    db_path: str | None,
+    sql: str,
+    gold_glob: str,
+    workspace: str | None = None,
+) -> dict:
     sql = sql.replace("GOLD_GLOB", gold_glob).replace("'GOLD_GLOB'", f"'{gold_glob}'")
+    sql = resolve_workspace_paths(sql, workspace)
     sql = apply_union_by_name(sql, gold_glob)
 
     if db_path and Path(db_path).exists():
@@ -59,6 +107,7 @@ def main() -> None:
     parser.add_argument("--sql")
     parser.add_argument("--gold-glob", required=True)
     parser.add_argument("--db-path")
+    parser.add_argument("--workspace")
     parser.add_argument("--register", action="store_true")
     parser.add_argument("--view-name", default=GOLD_VIEW)
     args = parser.parse_args()
@@ -76,7 +125,7 @@ def main() -> None:
             print(json.dumps({"error": "--sql required unless --register"}), file=sys.stderr)
             sys.exit(1)
 
-        payload = run_query(args.db_path, args.sql, args.gold_glob)
+        payload = run_query(args.db_path, args.sql, args.gold_glob, args.workspace)
         print(json.dumps(payload, default=str))
     except Exception as e:
         print(json.dumps({"error": str(e)}), file=sys.stderr)

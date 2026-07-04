@@ -11,6 +11,7 @@
     "start:prod": "nitrostack-cli start",
     "upgrade": "nitrostack-cli upgrade",
     "install:all": "nitrostack-cli install",
+    "postinstall": "node scripts/setup-cloud-parser.mjs",
     "widget": "npm --prefix src/widgets"
   },
   "dependencies": {

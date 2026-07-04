@@ -59,7 +59,7 @@ def parse_document(
             }
 
     print("LLM_CALL: yes", file=sys.stderr)
-    dsl = generate_dsl(file_path, resolved_doc_type)
+    dsl, ai_usage = generate_dsl(file_path, resolved_doc_type)
 
     try:
         silver = execute_parser(file_path, dsl, resolved_doc_type)
@@ -67,22 +67,28 @@ def parse_document(
             dsl = {**dsl, "extracted": silver}
         save(fp, resolved_doc_type, dsl)
         accuracy = compute_accuracy(silver, expected_path) if expected_path else None
-        return {
+        result = {
             "parserPath": "ai",
             "silverJson": silver,
             "accuracyPct": accuracy,
             "errorCode": None,
             "errorDetail": None,
         }
+        if ai_usage:
+            result["aiUsage"] = ai_usage
+        return result
     except Exception as e:
         save(fp, resolved_doc_type, dsl)
-        return {
+        result = {
             "parserPath": "ai",
             "silverJson": {},
             "accuracyPct": None,
             "errorCode": "SCHEMA_MISMATCH",
             "errorDetail": str(e),
         }
+        if ai_usage:
+            result["aiUsage"] = ai_usage
+        return result
 
 
 def main() -> None:
