@@ -93,3 +93,27 @@ export interface AnalyticsQueryResult {
   columns: string[];
   rows: Record<string, unknown>[];
 }
+
+/** A single config field a connector needs (rendered dynamically in the UI). */
+export interface ConnectorField {
+  name: string;
+  label: string;
+  required: boolean;
+  secret: boolean;
+  help: string;
+}
+
+/** A registered remote data-source connector (S3, GCS, Azure Blob, …). */
+export interface ConnectorType {
+  type: string;
+  label: string;
+  configSchema: ConnectorField[];
+}
+
+/** An object discovered on a remote source. */
+export interface ConnectorObject {
+  key: string;
+  name: string;
+  uri: string;
+  size?: number | null;
+}

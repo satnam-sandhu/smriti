@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Run DuckDB analytics queries against Gold Parquet."""
 
+from __future__ import annotations
+
 import argparse
 import glob as glob_module
 import json

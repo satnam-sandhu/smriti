@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { AnalyticsQueryResult, CollectionSummary, DocType } from "../../shared/types";
 import { CollectionTable } from "./CollectionTable";
+import { ConnectorModal } from "./ConnectorModal";
 import { DropZone } from "./DropZone";
 import { SqlPanel } from "./SqlPanel";
 
@@ -11,6 +12,27 @@ const DOC_TYPE_LABELS: Record<DocType, string> = {
   ledger: "Account Ledger",
   statement: "Bank Statement",
 };
+
+function CloudIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      width="16"
+      height="16"
+      aria-hidden
+    >
+      <path
+        d="M7 18a4 4 0 010-8 5 5 0 019.6-1.3A3.5 3.5 0 0117 18H7z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M12 12v5m0-5l-2 2m2-2l2 2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 interface CollectionDetailProps {
   collection: CollectionSummary;
@@ -27,6 +49,7 @@ export function CollectionDetail({
   const [tableLoading, setTableLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [processingCount, setProcessingCount] = useState(0);
+  const [showConnector, setShowConnector] = useState(false);
   const ingestingRef = useRef(false);
 
   const loadTable = useCallback(async () => {
@@ -77,6 +100,39 @@ export function CollectionDetail({
     [collection.id, loadTable, onRefresh],
   );
 
+  const handleConnectorImport = useCallback(
+    async (
+      connectorType: string,
+      config: Record<string, string>,
+      keys: string[] | null,
+      prefix: string,
+    ): Promise<number> => {
+      if (ingestingRef.current) return 0;
+      ingestingRef.current = true;
+      setBusy(true);
+      try {
+        const ids = await invoke<string[]>("ingest_from_connector", {
+          collectionId: collection.id,
+          connectorType,
+          config,
+          keys,
+          prefix,
+        });
+        if (ids.length > 0) {
+          setProcessingCount(ids.length);
+          await invoke("process_batch", { fileIds: ids });
+          await Promise.all([loadTable(), onRefresh()]);
+        }
+        return ids.length;
+      } finally {
+        setBusy(false);
+        setProcessingCount(0);
+        ingestingRef.current = false;
+      }
+    },
+    [collection.id, loadTable, onRefresh],
+  );
+
   const sqlDefault = `SELECT * FROM read_parquet('gold/collections/${collection.id}/*.parquet')`;
 
   return (
@@ -101,7 +157,26 @@ export function CollectionDetail({
         </div>
       </div>
 
+      <div className="ingest-actions">
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => setShowConnector(true)}
+          disabled={busy}
+        >
+          <CloudIcon />
+          Import from cloud
+        </button>
+      </div>
+
       <DropZone busy={busy} processingCount={processingCount} onIngest={handleIngest} />
+
+      {showConnector && (
+        <ConnectorModal
+          onClose={() => setShowConnector(false)}
+          onImport={handleConnectorImport}
+        />
+      )}
 
       <div className="card collection-data-card">
         <div className="card-header">
