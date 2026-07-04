@@ -1,7 +1,37 @@
 use crate::models::{
     AnalyticsQueryResult, Collection, CollectionSummary, FileDetail, FileRecord, PipelineMetrics,
+    PipelineStats,
 };
 use crate::pipeline;
+
+#[tauri::command]
+pub async fn list_failed_reviews(
+    app: tauri::AppHandle,
+) -> Result<Vec<crate::models::FailedFileReview>, String> {
+    tauri::async_runtime::spawn_blocking(move || pipeline::list_failed_reviews(&app))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_failed_review(
+    app: tauri::AppHandle,
+    file_id: String,
+) -> Result<Option<crate::models::FailedFileReview>, String> {
+    tauri::async_runtime::spawn_blocking(move || pipeline::get_failed_review(&app, file_id))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn mark_failed_review(
+    app: tauri::AppHandle,
+    file_id: String,
+) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || pipeline::mark_failed_review(&app, file_id))
+        .await
+        .map_err(|e| e.to_string())?
+}
 
 #[tauri::command]
 pub async fn create_collection(
@@ -54,6 +84,31 @@ pub async fn process_batch(
     tauri::async_runtime::spawn_blocking(move || pipeline::process_batch(&app, file_ids))
         .await
         .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_pipeline_stats(
+    app: tauri::AppHandle,
+    start_date: Option<String>,
+    end_date: Option<String>,
+    activity_page: Option<u32>,
+    activity_page_size: Option<u32>,
+    failures_page: Option<u32>,
+    failures_page_size: Option<u32>,
+) -> Result<PipelineStats, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        pipeline::get_pipeline_stats(
+            &app,
+            start_date,
+            end_date,
+            activity_page,
+            activity_page_size,
+            failures_page,
+            failures_page_size,
+        )
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]

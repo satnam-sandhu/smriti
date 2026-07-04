@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { AnalyticsQueryResult } from "../../shared/types";
+import { ChevronIcon } from "./icons";
 
 interface SqlPanelProps {
   defaultSql: string;
@@ -36,7 +37,7 @@ function ResultsTable({ result }: { result: AnalyticsQueryResult }) {
 }
 
 function formatCell(val: unknown): string {
-  if (val == null) return "ù";
+  if (val == null) return "-";
   if (typeof val === "object") return JSON.stringify(val);
   return String(val);
 }
@@ -80,7 +81,7 @@ export function SqlPanel({ defaultSql }: SqlPanelProps) {
           <span>SQL Analytics</span>
           <span className="sql-badge">DuckDB</span>
         </span>
-        <span className="sql-chevron">ù</span>
+        <ChevronIcon open={open} />
       </button>
 
       {open && (
@@ -98,7 +99,7 @@ export function SqlPanel({ defaultSql }: SqlPanelProps) {
               onClick={handleRun}
               disabled={running}
             >
-              {running ? "Runningù" : "Run Query"}
+              {running ? "Running..." : "Run Query"}
             </button>
             <button type="button" className="btn btn-ghost" onClick={handleReset}>
               Reset

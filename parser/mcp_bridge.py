@@ -104,7 +104,7 @@ def cmd_generate(args: argparse.Namespace) -> None:
     file_path = Path(args.file)
     doc_type = detect_doc_type(file_path.name)
     fp = fingerprint(file_path, doc_type)
-    dsl = generate_dsl(file_path, doc_type)
+    dsl, _usage = generate_dsl(file_path, doc_type)
     save(fp, doc_type, dsl)
     _out(
         {

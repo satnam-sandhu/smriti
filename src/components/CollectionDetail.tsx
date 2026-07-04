@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import type { AnalyticsQueryResult, CollectionSummary, DocType } from "../../shared/types";
 import { CollectionTable } from "./CollectionTable";
 import { DropZone } from "./DropZone";
+import { BackIcon } from "./icons";
 import { SqlPanel } from "./SqlPanel";
 
 const DOC_TYPE_LABELS: Record<DocType, string> = {
@@ -83,7 +84,8 @@ export function CollectionDetail({
     <div className="collection-detail">
       <div className="collection-detail-header">
         <button type="button" className="btn btn-ghost back-btn" onClick={onBack}>
-          ? Collections
+          <BackIcon />
+          Collections
         </button>
         <div className="collection-detail-meta">
           <h2 className="collection-detail-name">{collection.name}</h2>

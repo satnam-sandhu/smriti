@@ -43,7 +43,7 @@ export function CreateCollectionModal({
           New Collection
         </h2>
         <p className="modal-subtitle">
-          Choose a schema type — all documents in this collection will extract
+          Choose a schema type. All documents in this collection will extract
           the same fields
         </p>
 
@@ -89,7 +89,7 @@ export function CreateCollectionModal({
               className="btn btn-primary"
               disabled={!name.trim() || busy}
             >
-              {busy ? "Creating…" : "Create Collection"}
+              {busy ? "Creating..." : "Create Collection"}
             </button>
           </div>
         </form>
