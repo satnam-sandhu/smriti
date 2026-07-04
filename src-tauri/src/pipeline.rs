@@ -22,6 +22,177 @@ pub fn init_workspace(app: &AppHandle) -> Result<(), String> {
     init_db(app)
 }
 
+/// Resolve the parser interpreter (project venv if present, else system python3).
+fn parser_python(project_root: &Path) -> PathBuf {
+    let venv_python = project_root
+        .join("parser")
+        .join(".venv")
+        .join("bin")
+        .join("python3");
+    if venv_python.exists() {
+        venv_python
+    } else {
+        PathBuf::from("python3")
+    }
+}
+
+/// Run the thin connectors CLI and return its parsed JSON stdout.
+fn run_connectors_cli(app: &AppHandle, args: &[&str]) -> Result<serde_json::Value, String> {
+    let project_root = resolve_project_root(app);
+    let script = project_root.join("parser").join("connectors_cli.py");
+    let python = parser_python(&project_root);
+
+    let output = Command::new(python)
+        .arg(&script)
+        .args(args)
+        .output()
+        .map_err(|e| format!("Failed to run connectors CLI: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout)
+        .map_err(|e| {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            format!("Invalid connectors output: {e}. stderr: {stderr}")
+        })?;
+
+    // The CLI reports handled errors as {"error": "..."} with a non-zero exit.
+    if let Some(err) = value.get("error").and_then(|v| v.as_str()) {
+        return Err(err.to_string());
+    }
+    if !output.status.success() {
+        return Err(format!("Connectors CLI failed: {stdout}"));
+    }
+    Ok(value)
+}
+
+pub fn list_connector_types(app: &AppHandle) -> Result<serde_json::Value, String> {
+    run_connectors_cli(app, &["list-types"])
+}
+
+pub fn connector_list_objects(
+    app: &AppHandle,
+    connector_type: String,
+    config: serde_json::Value,
+    prefix: Option<String>,
+) -> Result<serde_json::Value, String> {
+    let config_str = config.to_string();
+    let mut args = vec!["list-objects", "--type", &connector_type, "--config", &config_str];
+    let prefix_val = prefix.unwrap_or_default();
+    if !prefix_val.is_empty() {
+        args.push("--prefix");
+        args.push(&prefix_val);
+    }
+    run_connectors_cli(app, &args)
+}
+
+/// Download objects from a remote connector into bronze and register each as a
+/// queued FileRecord under the given collection — the connector analogue of
+/// `ingest_files`. Returns the new file ids for `process_batch`.
+pub fn ingest_from_connector(
+    app: &AppHandle,
+    collection_id: String,
+    connector_type: String,
+    config: serde_json::Value,
+    keys: Option<Vec<String>>,
+    prefix: Option<String>,
+) -> Result<Vec<String>, String> {
+    with_db(app, |conn, _| {
+        get_collection(conn, &collection_id)?.ok_or_else(|| "Collection not found".to_string())?;
+        Ok(())
+    })?;
+
+    let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
+    let bronze_dir = workspace.join("bronze");
+    fs::create_dir_all(&bronze_dir).map_err(|e| e.to_string())?;
+    let bronze_str = bronze_dir.to_string_lossy().to_string();
+    let config_str = config.to_string();
+
+    let mut args = vec![
+        "pull",
+        "--type",
+        &connector_type,
+        "--config",
+        &config_str,
+        "--dest",
+        &bronze_str,
+    ];
+    let prefix_val = prefix.unwrap_or_default();
+    if !prefix_val.is_empty() {
+        args.push("--prefix");
+        args.push(&prefix_val);
+    }
+    let keys_json = keys.map(|k| serde_json::to_string(&k).unwrap_or_else(|_| "[]".into()));
+    if let Some(ref kj) = keys_json {
+        args.push("--keys");
+        args.push(kj);
+    }
+
+    let result = run_connectors_cli(app, &args)?;
+    let files = result
+        .get("files")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    let now = Utc::now().to_rfc3339();
+    let (ids, queued_records) = with_db(app, |conn, _| {
+        let mut ids = Vec::new();
+        let mut queued_records = Vec::new();
+        for item in &files {
+            let id = item
+                .get("documentId")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let file_name = item
+                .get("filename")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown")
+                .to_string();
+            let bronze_path = item
+                .get("bronzePath")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let bytes = item.get("bytes").and_then(|v| v.as_u64()).unwrap_or(0);
+            if id.is_empty() || bronze_path.is_empty() {
+                continue;
+            }
+
+            let record = FileRecord {
+                id: id.clone(),
+                collection_id: Some(collection_id.clone()),
+                file_name: file_name.clone(),
+                mime: Some(guess_mime(&file_name)),
+                status: FileStatus::Queued,
+                parser_path: None,
+                bronze_path,
+                silver_path: None,
+                bytes,
+                error_code: None,
+                error_detail: None,
+                accuracy_pct: None,
+                prompt_tokens: None,
+                completion_tokens: None,
+                ai_cost_usd: None,
+            };
+
+            insert_file(conn, &record, &now)?;
+            ids.push(id);
+            queued_records.push(record);
+        }
+        Ok((ids, queued_records))
+    })?;
+
+    for record in queued_records {
+        let _ = app.emit("file:queued", &record);
+    }
+
+    emit_metrics(app);
+    let _ = app.emit("collections:updated", ());
+    Ok(ids)
+}
+
 pub fn list_failed_reviews(app: &AppHandle) -> Result<Vec<FailedFileReview>, String> {
     with_db(app, |conn, workspace| {
         let rows = db_list_failed_files(conn)?;

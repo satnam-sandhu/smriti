@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """CLI entry point — called by Tauri pipeline for document parsing."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import sys

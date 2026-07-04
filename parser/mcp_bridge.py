@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """MCP bridge — CLI subcommands for Smriti document intelligence MCP server."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
@@ -15,6 +17,7 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
+from connectors import ConnectorError, get_connector, list_connector_types, pull
 from executor import execute_parser
 from gemini_client import generate_dsl
 from registry import fingerprint, list_all, lookup, save
@@ -409,6 +412,88 @@ def cmd_classify(args: argparse.Namespace) -> None:
     )
 
 
+def _parse_config(raw: str | None) -> dict:
+    if not raw:
+        return {}
+    try:
+        cfg = json.loads(raw)
+    except json.JSONDecodeError as e:
+        _out({"error": f"--config is not valid JSON: {e}"})
+        sys.exit(1)
+    if not isinstance(cfg, dict):
+        _out({"error": "--config must be a JSON object"})
+        sys.exit(1)
+    return cfg
+
+
+def cmd_list_connectors(_args: argparse.Namespace) -> None:
+    _out({"connectors": list_connector_types()})
+
+
+def cmd_connector_list(args: argparse.Namespace) -> None:
+    config = _parse_config(args.config)
+    try:
+        connector = get_connector(args.type, config)
+        objects = [obj.to_dict() for obj in connector.list_objects(args.prefix or "")]
+    except ConnectorError as e:
+        _out({"error": str(e)})
+        sys.exit(1)
+    _out({"connector": args.type, "objects": objects})
+
+
+def cmd_connector_pull(args: argparse.Namespace) -> None:
+    config = _parse_config(args.config)
+    keys = None
+    if args.keys:
+        try:
+            keys = json.loads(args.keys)
+        except json.JSONDecodeError as e:
+            _out({"error": f"--keys is not valid JSON: {e}"})
+            sys.exit(1)
+        if not isinstance(keys, list):
+            _out({"error": "--keys must be a JSON array of object keys"})
+            sys.exit(1)
+
+    bronze_dir = WORKSPACE / "bronze"
+    try:
+        pulled = pull(
+            args.type,
+            config,
+            bronze_dir=bronze_dir,
+            keys=keys,
+            prefix=args.prefix or "",
+        )
+    except ConnectorError as e:
+        _out({"error": str(e)})
+        sys.exit(1)
+
+    now = datetime.now(timezone.utc).isoformat()
+    with _conn() as conn:
+        for item in pulled:
+            conn.execute(
+                """INSERT INTO files
+                   (id, file_name, status, parser_path, bronze_path, silver_path, bytes,
+                    error_code, error_detail, accuracy_pct, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    item["documentId"],
+                    item["filename"],
+                    "queued",
+                    None,
+                    item["bronzePath"],
+                    None,
+                    item["bytes"],
+                    None,
+                    None,
+                    None,
+                    now,
+                ),
+            )
+        conn.commit()
+
+    _out({"connector": args.type, "pulled": len(pulled), "files": pulled})
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
@@ -467,6 +552,19 @@ def main() -> None:
     p = sub.add_parser("classify")
     p.add_argument("--file", required=True)
 
+    p = sub.add_parser("list-connectors")
+
+    p = sub.add_parser("connector-list")
+    p.add_argument("--type", required=True)
+    p.add_argument("--config", help="JSON object of connector config")
+    p.add_argument("--prefix", default="")
+
+    p = sub.add_parser("connector-pull")
+    p.add_argument("--type", required=True)
+    p.add_argument("--config", help="JSON object of connector config")
+    p.add_argument("--prefix", default="")
+    p.add_argument("--keys", help="JSON array of specific object keys to fetch")
+
     args = parser.parse_args()
     handlers = {
         "identify": cmd_identify,
@@ -484,6 +582,9 @@ def main() -> None:
         "list-failures": cmd_list_failures,
         "write-gold": cmd_write_gold,
         "classify": cmd_classify,
+        "list-connectors": cmd_list_connectors,
+        "connector-list": cmd_connector_list,
+        "connector-pull": cmd_connector_pull,
     }
     handlers[args.command](args)
 
