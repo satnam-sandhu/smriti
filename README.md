@@ -12,7 +12,7 @@ Enterprise multimodal document ingestion — Hackathon MVP (Topic 2).
 bash scripts/setup.sh
 cp .env.example .env   # add OPENROUTER_API_KEY
 npm run dev            # Smriti desktop app
-npm run dev:mcp        # NitroStack MCP (Person 4)
+npm run dev:mcp        # NitroStack MCP server
 ```
 
 ## Repo structure
@@ -22,10 +22,12 @@ smriti/
 ├── src/                 # React UI (Person 3)
 ├── src-tauri/           # Tauri/Rust pipeline (Person 1)
 ├── parser/              # Python parser + OpenRouter DSL (Person 2)
-├── mcp/                 # NitroStack MCP server (Person 4)
+├── mcp/                 # NitroStack MCP server (Person 4) — Full PRD tools
 ├── shared/types.ts      # API contract — all team reads this
+├── shared/constants.ts  # Active plugin + Gold partition paths
+├── data/                # Unified workspace (Bronze/Silver/Gold/SQLite)
+│   └── external/        # Real demo PDFs — annual reports (banking)
 ├── samples/             # Synthetics + expected JSON (Person 4)
-├── data/external/       # Real demo PDFs — annual reports (banking)
 ├── docs/                # PRD + team task files
 └── scripts/setup.sh
 ```
@@ -41,15 +43,23 @@ smriti/
 | `list_files` | All files with status |
 | `run_analytics_query` | DuckDB SQL on Gold Parquet |
 
-## MCP tools
+## MCP tools (Full PRD)
 
 | Tool | Description |
 |------|-------------|
 | `upload_document` | Ingest + parse single file |
+| `upload_folder` | Batch ingest local directory |
+| `identify_template` | Match file against parser registry |
+| `generate_parser` | Invoke Gemini to create DSL |
+| `execute_parser` | Run deterministic parser |
 | `get_pipeline_metrics` | Metrics snapshot |
 | `analytics_query` | DuckDB SQL query |
+| `list_failures` | Quarantined files with error codes |
+| `install_plugin` | Activate healthcare/finance plugin |
 
 Connect via [NitroStudio](https://nitrostack.ai/studio) → open `mcp/` folder.
+
+See [mcp/README.md](mcp/README.md) for full tool list and architecture.
 
 ## Team assignments
 
@@ -66,3 +76,10 @@ parser/.venv/bin/python3 parser/cli.py --file "data/external/annual reports/PL.p
 ```
 
 Second run on same file → `LLM_CALL: no` (deterministic).
+
+## MCP bridge CLI (standalone test)
+
+```bash
+parser/.venv/bin/python3 parser/mcp_bridge.py metrics
+parser/.venv/bin/python3 parser/mcp_bridge.py identify --file samples/good/clinical_01.pdf
+```

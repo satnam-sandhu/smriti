@@ -297,6 +297,14 @@ pub fn get_metrics(app: &AppHandle) -> Result<PipelineMetrics, String> {
     with_db(app, |conn, _| db_metrics(conn))
 }
 
+pub fn export_metrics_json(app: &AppHandle, metrics: &PipelineMetrics) -> Result<(), String> {
+    let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
+    let metrics_path = workspace.join("metrics.json");
+    let json = serde_json::to_string_pretty(metrics).map_err(|e| e.to_string())?;
+    fs::write(metrics_path, json).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 pub fn get_file_detail(app: &AppHandle, file_id: String) -> Result<Option<FileDetail>, String> {
     with_db(app, |conn, _| {
         let record = get_file(conn, &file_id)?;

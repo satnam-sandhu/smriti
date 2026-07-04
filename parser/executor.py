@@ -17,6 +17,8 @@ def execute_parser(file_path: Path, dsl: dict, doc_type: str) -> dict:
         data = _parse_image(file_path, dsl)
     elif ext == ".pdf":
         data = _parse_pdf(file_path, dsl)
+    elif ext == ".txt":
+        data = _parse_text(file_path, dsl)
     elif ext in {".xlsx", ".xls"}:
         data = _parse_excel(file_path, dsl)
     else:
@@ -97,12 +99,17 @@ def _merge_extracted(result: dict, dsl: dict) -> dict:
     return merged
 
 
+def _parse_text(file_path: Path, dsl: dict) -> dict:
+    text = file_path.read_text(encoding="utf-8", errors="replace")
+    result = _apply_regex_fields(text, dsl.get("fields", {}))
+    return _merge_extracted(result, dsl)
+
+
 def _parse_pdf(file_path: Path, dsl: dict) -> dict:
     text = ""
     with pdfplumber.open(file_path) as pdf:
         for page in pdf.pages[:3]:
             text += page.extract_text() or ""
-
     result = _apply_regex_fields(text, dsl.get("fields", {}))
     return _merge_extracted(result, dsl)
 

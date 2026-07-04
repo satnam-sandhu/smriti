@@ -29,6 +29,7 @@ pub fn run() {
 
 pub fn emit_metrics(app: &tauri::AppHandle) {
     if let Ok(metrics) = pipeline::get_metrics(app) {
-        let _ = app.emit("metrics:update", metrics);
+        let _ = app.emit("metrics:update", &metrics);
+        let _ = pipeline::export_metrics_json(app, &metrics);
     }
 }
