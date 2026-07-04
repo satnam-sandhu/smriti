@@ -1,0 +1,81 @@
+# Keeps develop aligned with main so develop → main PRs do not repeatedly conflict on
+# package.json / package-lock.json (both release workflows bump the same fields).
+#
+# Runs after "NitroChat release (main)" succeeds. The merge commit uses [skip ci] so the
+# develop release workflow does not immediately bump again on the sync commit alone.
+#
+# Note: workflow_run only runs reliably once this file exists on the repository default branch.
+
+name: Sync main into develop
+
+on:
+  workflow_run:
+    workflows:
+      - NitroChat release (main)
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nitrochat-sync-main-to-develop
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Configure git
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into develop
+        run: |
+          set -euo pipefail
+          git fetch origin
+          git checkout develop
+          git pull --ff-only origin develop
+
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo "develop already contains all commits from main; nothing to sync."
+            exit 0
+          fi
+
+          MERGE_FAILED=0
+          git merge origin/main -m "Merge branch 'main' into develop [skip ci]" || MERGE_FAILED=1
+
+          if [ "$MERGE_FAILED" -eq 1 ]; then
+            mapfile -t UNMERGED < <(git diff --name-only --diff-filter=U | sort)
+            if [ ${#UNMERGED[@]} -eq 0 ]; then
+              echo "Merge failed with no unmerged files."
+              git merge --abort || true
+              exit 1
+            fi
+            if [ ${#UNMERGED[@]} -ne 2 ] || [ "${UNMERGED[0]}" != package-lock.json ] || [ "${UNMERGED[1]}" != package.json ]; then
+              echo "Unexpected merge conflicts — resolve manually on develop: ${UNMERGED[*]}"
+              git merge --abort || true
+              exit 1
+            fi
+            git checkout --theirs package.json package-lock.json
+            npm install --package-lock-only
+            git add package.json package-lock.json
+            git commit -m "Merge branch 'main' into develop [skip ci]"
+          fi
+
+          git push origin develop

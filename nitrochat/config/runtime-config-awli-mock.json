@@ -1,0 +1,152 @@
+{
+    "mcp": {
+        "serverUrl": "https://awl-stg-69e602de-owls-org-29619bbc.dev.nitrocloud.ai",
+        "apiKey": null,
+        "timeout": 30000
+    },
+    "branding": {
+        "name": "AWLi",
+        "tagline": "Document filling AI Assistant",
+        "logo": "https://ecomm-awl-filled-documents.s3.us-east-1.amazonaws.com/public/images/avatar-d1b7b2f0-04d4-4d3d-bf06-500504816a34.png",
+        "favicon": "https://ecomm-awl-filled-documents.s3.us-east-1.amazonaws.com/public/images/avatar-d1b7b2f0-04d4-4d3d-bf06-500504816a34.png",
+        "faviconDark": "https://ecomm-awl-filled-documents.s3.us-east-1.amazonaws.com/public/images/avatar-d1b7b2f0-04d4-4d3d-bf06-500504816a34.png",
+        "faviconLight": "https://ecomm-awl-filled-documents.s3.us-east-1.amazonaws.com/public/images/avatar-d1b7b2f0-04d4-4d3d-bf06-500504816a34.png"
+    },
+    "theme_version_2": {
+        "mode": "light",
+        "logo_url_light": "https://ecomm-awl-filled-documents.s3.us-east-1.amazonaws.com/public/images/Owl_Side__1_-22a42a26-cfa6-47a6-8ed2-5c766851080d.png",
+        "logo_url_dark": "https://ecomm-awl-filled-documents.s3.us-east-1.amazonaws.com/public/images/Owl_Side__1_-22a42a26-cfa6-47a6-8ed2-5c766851080d.png",
+        "light": {
+            "brand_color": "#062827",
+            "advanced_customization": {
+                "header": {
+                    "header_background_color": "#062827",
+                    "header_text_color": "#BFC496",
+                    "header_subtext_color": "#B7C9C4"
+                },
+                "chat_area": {
+                    "chat_area_background_color": "#BFC49633"
+                },
+                "input_area": {
+                    "input_area_background_color": "#fff",
+                    "input_area_text_color": "#4F4865",
+                    "input_area_placeholder_color": "#7D739E",
+                    "input_area_border_color": "#DDD5E6",
+                    "input_area_send_button_background_color": "#062827",
+                    "input_area_send_button_icon_color": "#FDFDF9"
+                },
+                "message": {
+                    "ai_bubble_background_color": "#BFC49633",
+                    "ai_bubble_text_color": "#4F4865",
+                    "user_bubble_background_color": "#062827",
+                    "user_bubble_text_color":"#BFC496"
+                },
+                "alerts": {
+                    "alert_background_color": "#F59E0B",
+                    "alert_text_color": "#4F4865"
+                },
+                "border": {
+                    "borders_and_dividers_color": "#DDD5E6"
+                }
+            }
+        },
+        "dark": {
+            "brand_color": "#062827",
+            "advanced_customization": {
+                "header": {
+                    "header_background_color": "#062827",
+                    "header_text_color": "#F2EAE0",
+                    "header_subtext_color": "#8E84B0"
+                },
+                "chat_area": {
+                    "chat_area_background_color": "#FFFF"
+                },
+                "input_area": {
+                    "input_area_background_color": "#F2EAE0",
+                    "input_area_text_color": "#4F4865",
+                    "input_area_placeholder_color": "#8E84B0",
+                    "input_area_border_color": "#D9CFDF",
+                    "input_area_send_button_background_color": "#062827",
+                    "input_area_send_button_icon_color": "#BDA6CE"
+                },
+                "message": {
+                    "ai_bubble_background_color": "#BDA6CE",
+                    "ai_bubble_text_color": "#4F4865",
+                    "user_bubble_background_color": "#062827",
+                    "user_bubble_text_color":"#000000"
+                },
+                "alerts": {
+                    "alert_background_color": "#F59E0B",
+                    "alert_text_color": "#4F4865"
+                },
+                "border": {
+                    "borders_and_dividers_color": "#D9CFDF"
+                }
+            }
+        }
+    },
+    "chat": {
+        "welcomeMessage": "Hello! How can I help you today?",
+        "sessionCompletedDescription": "This session has ended successfully. Thank you for chatting with us — your request has been recorded. You can safely close this window, or refresh the page to start a new conversation.",
+        "sessionCompletedCtaEnabled": true,
+        "sessionCompletedCtaLabel": "Visit Nitrochat",
+        "sessionCompletedCtaUrl": "https://nitrostack.ai",
+        "sessionCompletedCtaColor": "#FFFFFF",
+        "placeholder": "Type your message... (Shift + Enter for new line)",
+        "maxMessageLength": 4000,
+        "enableImageUpload": false,
+        "enableVoiceInput": false,
+        "contextMaxTokens": 50000,
+        "sessionCompletedCtaBackground": "",
+        "suggestedPrompts": [
+            "What can you help me with?",
+            "Show me available tools",
+            "List all resources"
+        ]
+    },
+    "features": {
+        "showPrompts": true,
+        "showResources": true,
+        "showTools": true,
+        "enableMarkdown": true,
+        "enableCodeHighlight": true,
+        "enableFileDownload": true,
+        "enableChatHistory": true,
+        "enableChatExport": true
+    },
+    "ui": {
+        "layout": "centered",
+        "maxWidth": "1200px",
+        "borderRadius": "lg",
+        "fontSize": "base",
+        "animationsEnabled": true
+    },
+    "security": {
+        "enableRateLimit": true,
+        "maxRequestsPerMinute": 60,
+        "sanitizeInput": true,
+        "allowedOrigins": [
+            "*"
+        ]
+    },
+    "analytics": {
+        "enabled": false,
+        "trackingId": null
+    },
+    "systemPrompt": "",
+    "standaloneMode": {
+        "headerText": "Me llamo AWLi, y ¡me encantaría apoyarte! ",
+        "headerSubText": "Cuéntame tu requerimiento legal.",
+        "headerSubTextColor": "#062827",
+        "chatbotLogo": "https://ecomm-awl-filled-documents.s3.us-east-1.amazonaws.com/public/images/Owl_Side__1_-22a42a26-cfa6-47a6-8ed2-5c766851080d.png",
+        "welcomeText": "",
+        "headerTextStyle": {
+            "fontSize": "20px",
+            "fontWeight": "600"
+        },
+        "headerSubTextStyle": {
+            "fontSize": "13px",
+            "fontWeight": "400"
+        }
+    }
+}

@@ -13,6 +13,8 @@
     "tauri": "tauri",
     "dev:mcp": "npm run dev --prefix mcp",
     "build:mcp": "npm run build --prefix mcp",
+    "dev:nitrochat": "npm run dev --prefix nitrochat",
+    "build:nitrochat": "npm run build --prefix nitrochat",
     "setup": "bash scripts/setup.sh",
     "setup:parser": "python3 -m venv parser/.venv && parser/.venv/bin/pip install -r parser/requirements.txt"
   },

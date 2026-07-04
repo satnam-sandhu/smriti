@@ -13,6 +13,9 @@ npm install
 echo "==> Installing MCP dependencies..."
 npm install --prefix mcp
 
+echo "==> Installing NitroChat dependencies..."
+npm install --prefix nitrochat
+
 # Python parser venv
 echo "==> Setting up Python parser..."
 python3 -m venv parser/.venv
@@ -47,5 +50,6 @@ echo "Setup complete!"
 echo ""
 echo "  npm run dev          — Start Smriti desktop app"
 echo "  npm run dev:mcp      — Start NitroStack MCP server"
+echo "  npm run dev:nitrochat — Start NitroChat UI (port 3003)"
 echo ""
 echo "Team task files: docs/team/"

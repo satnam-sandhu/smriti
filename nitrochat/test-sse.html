@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test SSE Connection</title>
+</head>
+<body>
+    <h1>Testing SSE Connection to MCP Server</h1>
+    <div id="status">Connecting...</div>
+    <div id="messages"></div>
+
+    <script>
+        const clientId = `test_${Date.now()}`;
+        const sseUrl = `http://localhost:3002/mcp/sse?clientId=${clientId}`;
+        
+        const eventSource = new EventSource(sseUrl);
+
+        eventSource.onopen = () => {
+            document.getElementById('status').innerHTML = '✅ SSE Connected!';
+            
+            // Send a test JSON-RPC request
+            setTimeout(() => {
+                fetch('http://localhost:3002/mcp/message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'initialize',
+                        params: {
+                            protocolVersion: '2024-11-05',
+                            capabilities: {},
+                            clientInfo: { name: 'test-client', version: '1.0.0' }
+                        },
+                        id: 1
+                    })
+                }).then(r => r.json()).then(() => {});
+            }, 1000);
+        };
+
+        eventSource.onmessage = (event) => {
+            const div = document.createElement('div');
+            div.style.border = '1px solid green';
+            div.style.margin = '10px';
+            div.style.padding = '10px';
+            div.innerHTML = `<strong>Received:</strong><pre>${event.data}</pre>`;
+            document.getElementById('messages').appendChild(div);
+        };
+
+        eventSource.onerror = (error) => {
+            document.getElementById('status').innerHTML = '❌ SSE Error!';
+            console.error('SSE error:', error);
+        };
+    </script>
+</body>
+</html>
+
+

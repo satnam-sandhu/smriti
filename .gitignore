@@ -35,6 +35,14 @@ npm-debug.log*
 # MCP uploads
 mcp/uploads/
 
+# NitroChat
+nitrochat/node_modules/
+nitrochat/.next/
+nitrochat/out/
+nitrochat/.env
+nitrochat/.env.local
+nitrochat/.env.*.local
+
 # Backup / temp
 *.lte
 .gitignore.frontend

@@ -22,6 +22,7 @@ bash scripts/setup.sh
 cp .env.example .env   # add OPENROUTER_API_KEY
 npm run dev            # Smriti desktop app
 npm run dev:mcp        # NitroStack MCP server
+npm run dev:nitrochat  # NitroChat UI (port 3003)
 ```
 
 ## Repo structure
@@ -32,6 +33,7 @@ smriti/
 ├── src-tauri/           # Tauri/Rust pipeline (Person 1)
 ├── parser/              # Python parser + OpenRouter DSL (Person 2)
 ├── mcp/                 # NitroStack MCP server (Person 4) — Full PRD tools
+├── nitrochat/           # NitroChat UI for MCP (develop branch, Smriti-branded)
 ├── shared/types.ts      # API contract — all team reads this
 ├── shared/constants.ts  # Active plugin + Gold partition paths
 ├── data/                # Unified workspace (Bronze/Silver/Gold/SQLite)
@@ -69,6 +71,20 @@ smriti/
 Connect via [NitroStudio](https://nitrostack.ai/studio) → open `mcp/` folder.
 
 See [mcp/README.md](mcp/README.md) for full tool list and architecture.
+
+## NitroChat (local)
+
+The `nitrochat/` folder is the [NitroChat](https://github.com/nitrocloudofficial/nitrochat) `develop` branch, configured for Smriti MCP tools.
+
+```bash
+npm install --prefix nitrochat
+cp nitrochat/.env.smriti.example nitrochat/.env.local
+# Set NITROCHAT_GATEWAY_ENDPOINT + NITROCHAT_GATEWAY_API_KEY in .env.local
+npm run dev:nitrochat   # http://localhost:3003
+npm run dev:mcp         # MCP on http://localhost:3000 (local override in .env.local)
+```
+
+Runtime branding and MCP URL defaults live in `nitrochat/config/runtime-config.json` (production MCP URL from `shared/constants.ts`).
 
 ## Team assignments
 

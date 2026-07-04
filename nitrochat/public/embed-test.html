@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NitroChat Embed Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .code-block {
+            background: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            color: #e83e8c;
+        }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .api-demo {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+        button {
+            background: #ffe500;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 5px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 NitroChat Embed Test Page</h1>
+        <p>This page demonstrates how to integrate NitroChat into any website using a simple script tag.</p>
+
+        <h2>Integration Code</h2>
+        <div class="code-block">
+            <code>
+&lt;!-- Add this script tag before closing &lt;/body&gt; tag --&gt;<br>
+&lt;script src="http://localhost:3003/embed.js" async&gt;&lt;/script&gt;
+            </code>
+        </div>
+
+        <div class="note">
+            <strong>Note:</strong> The widget automatically loads configuration from the NitroChat server. No client-side configuration needed!
+        </div>
+
+        <h2>Features</h2>
+        <ul>
+            <li>✅ Floating chat button (bottom-right)</li>
+            <li>✅ Smooth open/close animations</li>
+            <li>✅ Mobile-responsive (full-screen on mobile)</li>
+            <li>✅ Server-side configuration</li>
+            <li>✅ Theme colors from your NitroChat config</li>
+            <li>✅ Secure iframe isolation</li>
+        </ul>
+
+        <h2>JavaScript API</h2>
+        <p>You can programmatically control the widget:</p>
+        
+        <div class="api-demo">
+            <h3>Try the API:</h3>
+            <button onclick="NitroChat.open()">Open Chat</button>
+            <button onclick="NitroChat.close()">Close Chat</button>
+            <button onclick="NitroChat.toggle()">Toggle Chat</button>
+        </div>
+
+        <div class="code-block">
+            <code>
+// Open the chat widget<br>
+window.NitroChat.open();<br>
+<br>
+// Close the chat widget<br>
+window.NitroChat.close();<br>
+<br>
+// Toggle the chat widget<br>
+window.NitroChat.toggle();
+            </code>
+        </div>
+
+        <h2>Production Setup</h2>
+        <p>For production, update the script URL to your deployed NitroChat instance:</p>
+        <div class="code-block">
+            <code>
+&lt;script src="https://your-nitrochat-domain.com/embed.js" async&gt;&lt;/script&gt;
+            </code>
+        </div>
+
+        <p style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 14px;">
+            Look for the chat button in the bottom-right corner! 👉
+        </p>
+    </div>
+
+    <!-- NitroChat Embed Script -->
+    <script src="http://localhost:3003/embed.js" async></script>
+</body>
+</html>
