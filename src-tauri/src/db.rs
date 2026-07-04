@@ -19,7 +19,7 @@ pub fn init_db(app: &tauri::AppHandle) -> Result<(), String> {
     std::fs::create_dir_all(&workspace).map_err(|e| e.to_string())?;
     std::fs::create_dir_all(workspace.join("bronze")).map_err(|e| e.to_string())?;
     std::fs::create_dir_all(workspace.join("silver")).map_err(|e| e.to_string())?;
-    std::fs::create_dir_all(workspace.join("gold/domain=healthcare/year=2026/month=07"))
+    std::fs::create_dir_all(workspace.join("gold/domain=finance/year=2026/month=07"))
         .map_err(|e| e.to_string())?;
     std::fs::create_dir_all(workspace.join("quarantine")).map_err(|e| e.to_string())?;
 

@@ -1,0 +1,70 @@
+{
+  "report": {
+    "doc_type": "report",
+    "fields": {
+      "company_name": {
+        "method": "regex",
+        "pattern": "Company Name:\\s*(.+?)(?=\\n|$)"
+      },
+      "report_type": {
+        "method": "regex",
+        "pattern": "Report Type:\\s*(.+?)(?=\\n|$)"
+      },
+      "fiscal_period": {
+        "method": "regex",
+        "pattern": "Fiscal Period:\\s*(.+?)(?=\\n|$)"
+      },
+      "revenue": {
+        "method": "regex",
+        "pattern": "Revenue:\\s*\\$?([\\d,\\.]+)"
+      },
+      "net_income": {
+        "method": "regex",
+        "pattern": "Net Income:\\s*\\$?([\\d,\\.]+)"
+      }
+    }
+  },
+  "ledger": {
+    "doc_type": "ledger",
+    "sheet": 0,
+    "columns": {
+      "account_id": "A",
+      "date": "B",
+      "debit": "C",
+      "credit": "D",
+      "balance": "E"
+    }
+  },
+  "statement": {
+    "doc_type": "statement",
+    "fields": {
+      "account_holder": {
+        "method": "regex",
+        "pattern": "Account Holder:\\s*(.+?)(?=\\n|$)"
+      },
+      "date": {
+        "method": "regex",
+        "pattern": "Date:\\s*([\\d\\-/]+)"
+      },
+      "amount": {
+        "method": "regex",
+        "pattern": "Amount:\\s*\\$?([\\d,\\.]+)"
+      },
+      "description": {
+        "method": "regex",
+        "pattern": "Description:\\s*(.+?)(?=\\n|$)"
+      },
+      "balance": {
+        "method": "regex",
+        "pattern": "Balance:\\s*\\$?([\\d,\\.]+)"
+      }
+    },
+    "extracted": {
+      "account_holder": "John Doe",
+      "date": "2026-03-10",
+      "amount": 1250.0,
+      "description": "Wire Transfer In",
+      "balance": 8450.0
+    }
+  }
+}

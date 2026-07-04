@@ -2,18 +2,21 @@ import base64
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 
+from schemas import SCHEMA_LABELS
+
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-DEFAULT_MODEL = "google/gemini-2.5-flash-preview"
+DEFAULT_MODEL = "google/gemini-2.5-flash"
 
 SCHEMA_FIELDS = {
-    "receipt": ["patient_name", "date", "amount", "diagnosis", "provider"],
-    "clinical": ["patient_id", "date", "diagnosis", "medication", "physician"],
+    "statement": ["account_holder", "date", "amount", "description", "balance"],
+    "report": ["company_name", "report_type", "fiscal_period", "revenue", "net_income"],
     "ledger": ["account_id", "date", "debit", "credit", "balance"],
 }
 
@@ -25,22 +28,32 @@ MIME_MAP = {
     ".pdf": "application/pdf",
 }
 
+BACKUP_DSL_PATH = Path(__file__).parent.parent / "registry" / "backup_dsl.json"
+
 
 def generate_dsl(file_path: Path, doc_type: str) -> dict:
-    """Generate extraction DSL via OpenRouter (Gemini multimodal), or fallback heuristics."""
+    """Generate extraction DSL via OpenRouter, backup file, or heuristics."""
     api_key = os.getenv("OPENROUTER_API_KEY")
     model = os.getenv("OPENROUTER_MODEL", DEFAULT_MODEL)
-    fields = SCHEMA_FIELDS.get(doc_type, SCHEMA_FIELDS["clinical"])
+    fields = SCHEMA_FIELDS.get(doc_type, SCHEMA_FIELDS["report"])
 
     if api_key:
         try:
             text = _call_openrouter(api_key, model, file_path, doc_type, fields)
             match = re.search(r"\{.*\}", text, re.DOTALL)
             if match:
+                print("DSL_SOURCE: openrouter", file=sys.stderr)
                 return json.loads(match.group())
-        except Exception:
-            pass
+            print("DSL_SOURCE: openrouter_invalid_json", file=sys.stderr)
+        except Exception as e:
+            print(f"DSL_SOURCE: openrouter_error ({e})", file=sys.stderr)
 
+    backup = _load_backup_dsl(doc_type)
+    if backup:
+        print("DSL_SOURCE: backup", file=sys.stderr)
+        return backup
+
+    print("DSL_SOURCE: fallback", file=sys.stderr)
     return _fallback_dsl(file_path, doc_type, fields)
 
 
@@ -51,15 +64,20 @@ def _call_openrouter(
     from openai import OpenAI
 
     client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=api_key)
+    schema_label = SCHEMA_LABELS.get(doc_type, doc_type)
 
     prompt = (
-        f"Analyze this document and return ONLY valid JSON for an extraction DSL.\n"
-        f"Document type: {doc_type}\n"
+        f"Analyze this banking/finance document and return ONLY valid JSON for an extraction DSL.\n"
+        f"Schema: {schema_label}\n"
+        f"Document type key: {doc_type}\n"
         f"Required fields: {fields}\n"
-        f'Format: {{"doc_type":"{doc_type}","fields":{{"<field>":{{"method":"regex","pattern":"..."}}}}}}\n'
+        f'Format: {{"doc_type":"{doc_type}","fields":{{"<field>":{{"method":"regex","pattern":"..."}}}},'
+        f'"extracted":{{"<field>":"<value from this document>"}}}}\n'
         f"For Excel/ledger type use: "
         f'{{"doc_type":"{doc_type}","sheet":0,"columns":{{"field":"A"}}}}\n'
-        f"Use regex patterns that match typical {doc_type} documents."
+        f"Always include extracted with values read from THIS document. "
+        f"For images, extracted is required. "
+        f"For financial PDFs, infer company_name and report_type from headers/title."
     )
 
     ext = file_path.suffix.lower()
@@ -73,9 +91,10 @@ def _call_openrouter(
         )
     elif ext == ".pdf":
         with pdfplumber.open(file_path) as pdf:
-            doc_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+            pages = pdf.pages[:3]
+            doc_text = "\n".join(page.extract_text() or "" for page in pages)
         content_parts.append(
-            {"type": "text", "text": f"Document text content:\n\n{doc_text[:8000]}"}
+            {"type": "text", "text": f"Document text content (first pages):\n\n{doc_text[:8000]}"}
         )
     elif ext in {".xlsx", ".xls"}:
         import openpyxl
@@ -95,6 +114,7 @@ def _call_openrouter(
 
     response = client.chat.completions.create(
         model=model,
+        max_tokens=1024,
         messages=[{"role": "user", "content": content_parts}],
         extra_headers={
             "HTTP-Referer": os.getenv("OPENROUTER_SITE_URL", "https://smriti.local"),
@@ -103,6 +123,17 @@ def _call_openrouter(
     )
 
     return (response.choices[0].message.content or "").strip()
+
+
+def _load_backup_dsl(doc_type: str) -> dict | None:
+    if not BACKUP_DSL_PATH.exists():
+        return None
+    try:
+        data = json.loads(BACKUP_DSL_PATH.read_text())
+        dsl = data.get(doc_type)
+        return dsl if isinstance(dsl, dict) else None
+    except (json.JSONDecodeError, OSError):
+        return None
 
 
 def _fallback_dsl(file_path: Path, doc_type: str, fields: list[str]) -> dict:
@@ -121,14 +152,16 @@ def _fallback_dsl(file_path: Path, doc_type: str, fields: list[str]) -> dict:
         }
 
     patterns = {
-        "patient_name": r"Patient(?: Name)?:\s*(.+)",
-        "patient_id": r"Patient ID:\s*(\S+)",
+        "account_holder": r"Account Holder:\s*(.+)",
+        "company_name": r"Company Name:\s*(.+)",
+        "report_type": r"Report Type:\s*(.+)",
+        "fiscal_period": r"Fiscal Period:\s*(.+)",
         "date": r"Date:\s*([\d\-/]+)",
-        "amount": r"(?:Amount|Total):\s*\$?([\d.]+)",
-        "diagnosis": r"Diagnosis:\s*(.+)",
-        "medication": r"Medication:\s*(.+)",
-        "physician": r"Physician:\s*(.+)",
-        "provider": r"Provider:\s*(.+)",
+        "amount": r"Amount:\s*\$?([\d,\.]+)",
+        "description": r"Description:\s*(.+)",
+        "balance": r"Balance:\s*\$?([\d,\.]+)",
+        "revenue": r"Revenue:\s*\$?([\d,\.]+)",
+        "net_income": r"Net Income:\s*\$?([\d,\.]+)",
     }
 
     dsl_fields = {}
@@ -136,4 +169,29 @@ def _fallback_dsl(file_path: Path, doc_type: str, fields: list[str]) -> dict:
         if field in patterns:
             dsl_fields[field] = {"method": "regex", "pattern": patterns[field]}
 
+    if doc_type == "report" and "company_name" not in dsl_fields:
+        stem = file_path.stem.replace("_", " ")
+        return {
+            "doc_type": doc_type,
+            "fields": dsl_fields,
+            "extracted": {
+                "company_name": stem,
+                "report_type": _guess_report_type(file_path.name),
+                "fiscal_period": "",
+                "revenue": 0.0,
+                "net_income": 0.0,
+            },
+        }
+
     return {"doc_type": doc_type, "fields": dsl_fields}
+
+
+def _guess_report_type(file_name: str) -> str:
+    lower = file_name.lower()
+    if "balance sheet" in lower or " bs" in lower or lower.endswith("bs.pdf"):
+        return "Balance Sheet"
+    if "cash flow" in lower or " cf" in lower or lower.endswith("cf.pdf"):
+        return "Cash Flow Statement"
+    if "p&l" in lower or "profit" in lower or lower.endswith("pl.pdf"):
+        return "Profit and Loss"
+    return "Financial Report"

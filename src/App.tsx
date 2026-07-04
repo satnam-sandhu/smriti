@@ -88,7 +88,7 @@ function App() {
     <div className="app">
       <header className="header">
         <h1>Smriti</h1>
-        <p>Enterprise Document Ingestion — Bronze → Silver → Gold</p>
+        <p>Finance Document Ingestion — Bronze → Silver → Gold</p>
       </header>
 
       <div className="tabs">

@@ -218,7 +218,7 @@ fn write_gold_parquet(
         detail: e,
     })?;
 
-    let gold_dir = workspace.join("gold/domain=healthcare/year=2026/month=07");
+    let gold_dir = workspace.join("gold/domain=finance/year=2026/month=07");
     fs::create_dir_all(&gold_dir).map_err(|e| ProcessError {
         code: "VALIDATION_ERROR".into(),
         detail: e.to_string(),
@@ -341,7 +341,7 @@ pub fn run_analytics_query(app: &AppHandle, sql: String) -> Result<crate::models
 
     let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
     let gold_glob = workspace
-        .join("gold/domain=healthcare/year=2026/month=07/*.parquet")
+        .join("gold/domain=finance/year=2026/month=07/*.parquet")
         .to_string_lossy()
         .to_string();
 

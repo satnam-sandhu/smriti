@@ -26,7 +26,7 @@
   data/
     bronze/
     silver/
-    gold/domain=healthcare/year=2026/month=07/
+    gold/domain=finance/year=2026/month=07/
     quarantine/
   smriti.db   (SQLite)
   ```
@@ -85,7 +85,7 @@ export type PipelineMetrics = {
 - [ ] `get_file_detail(fileId)` → bronze path + silver JSON + gold row preview
 - [ ] `run_analytics_query(sql: string)` → `{ columns, rows }` for demo SQL:
   ```sql
-  SELECT * FROM read_parquet('data/gold/domain=healthcare/year=2026/month=07/*.parquet') LIMIT 5;
+  SELECT * FROM read_parquet('data/gold/domain=finance/year=2026/month=07/*.parquet') LIMIT 5;
   ```
 - [ ] `list_files()` → all files with status for side-by-side viewer
 

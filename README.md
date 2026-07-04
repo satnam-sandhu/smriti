@@ -4,6 +4,8 @@ Enterprise multimodal document ingestion — Hackathon MVP (Topic 2).
 
 **Bronze → Silver → Gold** medallion pipeline with adaptive parser (AI once, deterministic forever).
 
+**Demo plugin:** Finance (Banking) — annual reports, ledgers, bank statements.
+
 ## Quick start
 
 ```bash
@@ -22,7 +24,8 @@ smriti/
 ├── parser/              # Python parser + OpenRouter DSL (Person 2)
 ├── mcp/                 # NitroStack MCP server (Person 4)
 ├── shared/types.ts      # API contract — all team reads this
-├── samples/             # Demo documents (Person 4)
+├── samples/             # Synthetics + expected JSON (Person 4)
+├── data/external/       # Real demo PDFs — annual reports (banking)
 ├── docs/                # PRD + team task files
 └── scripts/setup.sh
 ```
@@ -55,7 +58,11 @@ See `docs/team/person-*.md` for hour-by-hour tasks.
 ## Parser CLI (standalone test)
 
 ```bash
-parser/.venv/bin/python3 parser/cli.py --file samples/good/clinical_01.pdf
+# Synthetic dev file
+parser/.venv/bin/python3 parser/cli.py --file samples/good/report_01.pdf
+
+# Real banking demo PDF
+parser/.venv/bin/python3 parser/cli.py --file "data/external/annual reports/PL.pdf"
 ```
 
 Second run on same file → `LLM_CALL: no` (deterministic).

@@ -21,39 +21,45 @@
 
 ### 2:00–3:00 — Sample documents (P0 · do this first)
 
-Create folder `samples/` in repo:
+**Primary demo batch:** `data/external/annual reports/` — 18 real PDF annual reports (already in repo).
+
+Create / maintain `samples/` for synthetics, golden JSON, and bad files:
 
 ```
 samples/
   good/
-    receipt_01.png          # printed medical receipt (use AI image gen or template)
-    receipt_02.png
-    clinical_01.pdf         # simple 1-page clinical summary
-    clinical_02.pdf
-    ledger_01.xlsx          # 1 sheet, 10 rows, clear columns
+    statement_01.png        # printed bank statement
+    statement_02.png
+    report_01.pdf         # synthetic financial report (dev fallback)
+    report_02.pdf
+    ledger_01.xlsx
     ledger_02.xlsx
+    statement_01.png      # synthetic bank statement
+    statement_02.png
   bad/
     corrupt.pdf             # truncate a PDF (copy first 2KB of real PDF)
     bad_schema.xlsx         # wrong column names vs schema
   expected/
-    receipt_01.json         # expected extracted fields
-    clinical_01.json
-    ledger_01.json
+    statement_01.json       # expected extracted fields
+    report_01.json
+    PL.json                 # golden set for external annual report
     ...
   DEMO_FILES.txt            # ordered list for demo drop
 ```
 
 **Rules:**
-- Synthetic data only — fake names ("Jane Doe", "John Test")
-- File names prefixed by type (`receipt_`, `clinical_`, `ledger_`) so Person 2's fingerprint works
+- Public annual reports in `data/external/` — OK for demo
+- Synthetics: fake names only ("Jane Doe Holdings", "Test Account 9001")
+- File names prefixed by type (`report_`, `ledger_`, `statement_`) for parser doc-type detection
 - `corrupt.pdf` must fail gracefully
 - `bad_schema.xlsx` should trigger validation error, not crash
+- Do **not** rename files in `data/external/annual reports/` after Person 2 pre-seeds registry
 
 **Quick ways to create files:**
-- PDF: Google Docs → export, or use any free PDF generator
-- Excel: create in Google Sheets → download .xlsx
-- Receipt image: Canva template or screenshot a fake receipt
-- Corrupt PDF: `head -c 2048 clinical_01.pdf > corrupt.pdf`
+- PDF: use `data/external/annual reports/` OR export from Google Docs
+- Excel: Google Sheets → .xlsx with account_id, date, debit, credit, balance
+- Bank statement image: Canva template or screenshot a fake statement
+- Corrupt PDF: `head -c 2048 "data/external/annual reports/PL.pdf" > samples/bad/corrupt.pdf`
 
 ### 3:00–3:30 — Expected JSON (golden set)
 
@@ -61,11 +67,11 @@ For each file in `samples/good/`, create matching `samples/expected/{same_name}.
 
 ```json
 {
-  "patient_name": "Jane Doe",
-  "date": "2026-06-15",
-  "amount": 150.00,
-  "diagnosis": "Routine checkup",
-  "provider": "Test Clinic"
+  "company_name": "Infosys Limited",
+  "report_type": "Consolidated Profit and Loss",
+  "fiscal_period": "2024-25",
+  "revenue": "",
+  "net_income": ""
 }
 ```
 
@@ -91,7 +97,7 @@ For each file in `samples/good/`, create matching `samples/expected/{same_name}.
 [ ] Drop corrupt.pdf alone → quarantined, no crash
 [ ] Drop bad_schema.xlsx → validation error, no crash
 [ ] Drop good + bad mixed → good succeed, bad fail
-[ ] Re-drop clinical_01.pdf → deterministic badge
+[ ] Re-drop annual report PDF → deterministic badge (e.g. pre-seeded Infosys P&L)
 [ ] Dashboard numbers update
 [ ] Extraction tab shows JSON
 ```
@@ -133,14 +139,14 @@ Create `docs/team/DEMO_RUNBOOK.md`:
 | ... | ... | ... |
 
 ## Backup if OpenRouter fails
-- Say "we pre-learned this template" → drop clinical_02.pdf → show deterministic
+- Say "we pre-learned this template" → drop second Infosys/Piramal report → show deterministic
 
 ## Backup if app crashes
 - Show backup screen recording (record during 5:30 dry run)
 ```
 
 - [ ] Write 1-min intro (you speak):
-  > "Enterprises drown in PDFs, Excel, and scanned forms. Smriti ingests messy docs into a queryable data lake — AI learns each layout once, then runs deterministic forever. Local-first, no repeated LLM cost."
+  > "Enterprises drown in PDFs, Excel, and scanned bank documents. Smriti ingests messy financial filings into a queryable data lake — AI learns each layout once, then runs deterministic forever. Local-first, no repeated LLM cost."
 
 ### 5:30–5:45 — Dry run
 
@@ -174,7 +180,8 @@ mcp/                      P2 — only if time
 - Touch parser logic or Tauri Rust unless dev asks
 - Add new features
 - Rename sample files after 3 PM (breaks fingerprint)
-- Use real patient/financial data
+- Use real **public** annual reports in `data/external/` — OK
+- No private account numbers or customer PII
 
 ---
 

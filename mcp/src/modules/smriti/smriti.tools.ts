@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
+const GOLD_GLOB = join(ROOT, 'data/gold/domain=finance/year=2026/month=07/*.parquet');
 const PYTHON = existsSync(join(ROOT, 'parser/.venv/bin/python3'))
   ? join(ROOT, 'parser/.venv/bin/python3')
   : 'python3';
@@ -97,11 +98,7 @@ export class SmritiTools {
     }),
   })
   async analyticsQuery(input: { sql: string }, ctx: ExecutionContext) {
-    const goldGlob = join(
-      ROOT,
-      'data/gold/domain=healthcare/year=2026/month=07/*.parquet',
-    );
     ctx.logger.info('Running analytics query', { sql: input.sql });
-    return runAnalytics(input.sql, goldGlob);
+    return runAnalytics(input.sql, GOLD_GLOB);
   }
 }

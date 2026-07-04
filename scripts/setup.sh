@@ -20,7 +20,7 @@ parser/.venv/bin/pip install -r parser/requirements.txt
 
 # Data directories
 echo "==> Creating data directories..."
-mkdir -p data/bronze data/silver data/gold/domain=healthcare/year=2026/month=07 data/quarantine
+mkdir -p data/bronze data/silver data/gold/domain=finance/year=2026/month=07 data/quarantine
 mkdir -p samples/good samples/bad samples/expected
 
 # Env file

@@ -23,7 +23,7 @@ Desktop-first (Tauri) enterprise multimodal ingestion platform with embedded Nit
 - Adaptive parser: Gemini learns unknown layout → Extraction DSL → Parser Registry → deterministic re-parse
 - Pipeline Health Dashboard (real-time metrics)
 - Failure handling for corrupt files, schema mismatches, and partial parses
-- One industry plugin (Healthcare OR Finance) with 3 document schemas
+- One industry plugin with 3 document schemas — **Finance (Banking)** for hackathon demo
 - Embedded NitroStack MCP runtime + NitroStudio MCP app (1 team member)
 - DuckDB SQL query demo over Gold Parquet
 - 15-minute live demo script (rehearsed end-to-end workflow)
@@ -81,7 +81,7 @@ Desktop-first (Tauri) enterprise multimodal ingestion platform with embedded Nit
 
 - Convert validated Silver JSON into compressed, partition-based Parquet files
 - **Partition convention (required):** `{lake_root}/domain={domain}/year={year}/month={month}/*.parquet`
-- **Example:** `data/lake/domain=healthcare/year=2026/month=06/batch_001.parquet`
+- **Example:** `data/gold/domain=finance/year=2026/month=07/batch_001.parquet`
 - Register partitions in DuckDB for instant SQL analytics
 - Schema evolution: new fields append as nullable columns; breaking changes require plugin version bump
 
@@ -94,18 +94,18 @@ Desktop-first (Tauri) enterprise multimodal ingestion platform with embedded Nit
 | Type | Description |
 |------|-------------|
 | TXT | Plain text logs and exports |
-| PDF | Multi-column clinical records, invoices, academic papers |
-| Excel | Complex multi-tab financial ledgers with nested tables |
-| Images | Handwritten medical receipts, scanned invoices (PNG, JPEG, TIFF) |
+| PDF | Multi-column financial reports, invoices, annual filings |
+| Excel | Multi-tab account ledgers with nested tables |
+| Images | Scanned bank statements, transaction slips (PNG, JPEG, TIFF) |
 | Upload | Drag & drop (single files and folders) |
 
 ### Demo Document Set (Minimum)
 
 Prepare 8–10 labeled sample documents across 3 types for accuracy measurement:
 
-- 3× handwritten/scanned receipts or medical forms (images)
-- 3× multi-tab Excel financial ledgers
-- 3× multi-column PDF clinical or invoice records
+- 3× scanned bank statements or transaction slips (images)
+- 3× multi-tab Excel account ledgers
+- 3× multi-column PDF financial reports (annual reports, P&L, balance sheet)
 - 1× corrupt/truncated PDF (failure demo)
 - 1× Excel with unexpected column layout (schema mismatch demo)
 
@@ -271,14 +271,14 @@ All internal modules communicate through embedded NitroStack MCP. One team membe
 
 Each plugin contributes: JSON Schemas, Pydantic validators, Gemini prompts, extraction DSLs, dashboard widgets, and MCP tools.
 
-### Hackathon Plugin (Pick One)
+### Hackathon Plugin — **Finance (Banking)** ✓ selected
 
 | Plugin | Document Types |
 |--------|----------------|
-| **Healthcare** | Medical receipts (image), clinical PDF records, patient ledger Excel |
-| **Finance** | Invoice PDFs, multi-tab ledger Excel, bank statement images |
+| ~~Healthcare~~ | Medical receipts (image), clinical PDF records, patient ledger Excel |
+| **Finance** | Annual report PDFs (P&L, BS, CF), account ledger Excel, bank statement images |
 
-Ship exactly one plugin with 3 document schemas. Additional plugins are post-hackathon.
+Demo data: `data/external/annual reports/` (18 public filing PDFs). Synthetics in `samples/good/`.
 
 ---
 

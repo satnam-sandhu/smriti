@@ -9,7 +9,7 @@ from pathlib import Path
 # Allow imports when invoked from project root
 sys.path.insert(0, str(Path(__file__).parent))
 
-from executor import execute_parser
+from executor import IMAGE_EXTS, execute_parser
 from gemini_client import generate_dsl
 from registry import fingerprint, lookup, save
 from schemas import detect_doc_type
@@ -56,10 +56,12 @@ def parse_document(file_path: Path, expected_path: Path | None = None) -> dict:
 
     print("LLM_CALL: yes", file=sys.stderr)
     dsl = generate_dsl(file_path, doc_type)
-    save(fp, doc_type, dsl)
 
     try:
         silver = execute_parser(file_path, dsl, doc_type)
+        if file_path.suffix.lower() in IMAGE_EXTS:
+            dsl = {**dsl, "extracted": silver}
+        save(fp, doc_type, dsl)
         accuracy = compute_accuracy(silver, expected_path) if expected_path else None
         return {
             "parserPath": "ai",
@@ -69,6 +71,7 @@ def parse_document(file_path: Path, expected_path: Path | None = None) -> dict:
             "errorDetail": None,
         }
     except Exception as e:
+        save(fp, doc_type, dsl)
         return {
             "parserPath": "ai",
             "silverJson": {},
@@ -81,10 +84,10 @@ def parse_document(file_path: Path, expected_path: Path | None = None) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", required=True, type=Path)
-    parser.add_argument("--expected", type=Path, default=Path(""))
+    parser.add_argument("--expected", type=Path, default=None)
     args = parser.parse_args()
 
-    expected = args.expected if args.expected.exists() else None
+    expected = args.expected if args.expected and args.expected.is_file() else None
     result = parse_document(args.file, expected)
     print(json.dumps(result))
 
