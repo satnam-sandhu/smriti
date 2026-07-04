@@ -37,6 +37,22 @@ function GDriveLogo() {
   );
 }
 
+function PostgresLogo() {
+  return (
+    <svg viewBox="0 0 24 24" fill="#336791" aria-hidden>
+      <path d="M12 2C8.5 2 6 4.2 6 7.1c0 1.4.7 2.7 1.8 3.6-.9.5-1.5 1.4-1.5 2.5v1.3c0 .6.5 1.1 1.1 1.1h1.1v2.2c0 1.5 1.2 2.7 2.7 2.7h.6c1.5 0 2.7-1.2 2.7-2.7v-2.2h1.1c.6 0 1.1-.5 1.1-1.1v-1.3c0-1.1-.6-2-1.5-2.5 1.1-.9 1.8-2.2 1.8-3.6C18 4.2 15.5 2 12 2zm0 1.8c2.4 0 4.2 1.5 4.2 3.3S14.4 10.4 12 10.4 7.8 8.9 7.8 7.1 9.6 3.8 12 3.8zM8.4 12.4c.3-.2.7-.3 1.1-.3h5c.4 0 .8.1 1.1.3.5.3.8.8.8 1.4v.9H7.6v-.9c0-.6.3-1.1.8-1.4z" />
+    </svg>
+  );
+}
+
+function MySqlLogo() {
+  return (
+    <svg viewBox="0 0 24 24" fill="#00758F" aria-hidden>
+      <path d="M16.5 3.5c-.3 0-.6.1-.8.3L14 5.5c-.4.4-.4 1 0 1.4l1.7 1.7c.4.4 1 .4 1.4 0l1.7-1.7c.4-.4.4-1 0-1.4l-1.7-1.7c-.2-.2-.5-.3-.8-.3h-.8zM6 8c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-5.5l-2 2V18c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1v-8c0-.6.4-1 1-1h5.5l2-2H6zm8.5 1.5L8 16h2.5l1.5-2 1.5 2H16l-3.5-6.5z" />
+    </svg>
+  );
+}
+
 function GenericLogo() {
   return (
     <svg viewBox="0 0 48 48" fill="none" stroke="#8b95a5" strokeWidth="2" aria-hidden>
@@ -55,6 +71,10 @@ export function ConnectorLogo({ type }: { type: string }) {
       return <AzureLogo />;
     case "gdrive":
       return <GDriveLogo />;
+    case "postgres":
+      return <PostgresLogo />;
+    case "mysql":
+      return <MySqlLogo />;
     default:
       return <GenericLogo />;
   }

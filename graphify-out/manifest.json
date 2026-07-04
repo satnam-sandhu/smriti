@@ -1,7 +1,7 @@
 {
   "mcp/package.json": {
-    "mtime": 1783154622.3203316,
-    "ast_hash": "95b8c58555e902a383e2d1d2cf68eff4",
+    "mtime": 1783170995.5166361,
+    "ast_hash": "867e1e80f896e64a060dc6a3f72ea87f",
     "semantic_hash": ""
   },
   "mcp/src/app.module.ts": {
@@ -60,33 +60,33 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1783162058.1349177,
-    "ast_hash": "99c72811fab0c1f2120b3fe963d48de2",
+    "mtime": 1783170995.5335524,
+    "ast_hash": "1403f6b76bc492375dcb824719116068",
     "semantic_hash": ""
   },
   "parser/analytics.py": {
-    "mtime": 1783164256.9426603,
-    "ast_hash": "f347b329a2fc1050d9b7109d8efff90f",
+    "mtime": 1783171003.2921617,
+    "ast_hash": "af3482751b887bf2583108bf50fd60cd",
     "semantic_hash": ""
   },
   "parser/cli.py": {
-    "mtime": 1783163268.0821111,
-    "ast_hash": "9b75f263a22395804487c489b49d07f0",
+    "mtime": 1783171003.2924213,
+    "ast_hash": "649fef2a3b0709b1d32059d06912ba46",
     "semantic_hash": ""
   },
   "parser/executor.py": {
-    "mtime": 1783157782.3115902,
-    "ast_hash": "ffcf20cccb78ce4e6c11e3b7ba92ac5d",
+    "mtime": 1783171003.294227,
+    "ast_hash": "d525b602bb8461fd34dd67a0ad7cbe5e",
     "semantic_hash": ""
   },
   "parser/gemini_client.py": {
-    "mtime": 1783163265.390665,
-    "ast_hash": "493acc0104ccf1a0e196738ac83df2d0",
+    "mtime": 1783171003.294753,
+    "ast_hash": "01f6e63fb2d83d2fd42ceb229290a2db",
     "semantic_hash": ""
   },
   "parser/registry.py": {
-    "mtime": 1783157782.312086,
-    "ast_hash": "8d42ff3ba8d758f21abd59097834d5d0",
+    "mtime": 1783171003.2952719,
+    "ast_hash": "110aed8e7ba45aa2254f7e7c18fa2d63",
     "semantic_hash": ""
   },
   "parser/schemas.py": {
@@ -105,13 +105,13 @@
     "semantic_hash": ""
   },
   "scripts/setup.sh": {
-    "mtime": 1783157782.31243,
-    "ast_hash": "3c7597933dbd00a9664cb13be5640bd3",
+    "mtime": 1783170995.5337663,
+    "ast_hash": "2ebfaa5ec5e3ca51c61a5902a01e05fa",
     "semantic_hash": ""
   },
   "shared/types.ts": {
-    "mtime": 1783163680.8572094,
-    "ast_hash": "24c60f7e11a762eaae7e96e38edada3f",
+    "mtime": 1783171003.2955437,
+    "ast_hash": "d2c4b1191f831e288e78be501d0eb067",
     "semantic_hash": ""
   },
   "src-tauri/build.rs": {
@@ -125,18 +125,18 @@
     "semantic_hash": ""
   },
   "src-tauri/src/commands.rs": {
-    "mtime": 1783164261.305577,
-    "ast_hash": "419af5a8567090f97286daa02acc6570",
+    "mtime": 1783171003.2956772,
+    "ast_hash": "2e993d47dee0899758d9680cc0a0bd66",
     "semantic_hash": ""
   },
   "src-tauri/src/db.rs": {
-    "mtime": 1783163701.1957889,
-    "ast_hash": "8c5f02da8e4127beaf9fd91218adb1ae",
+    "mtime": 1783171003.2522907,
+    "ast_hash": "6f39fd40dad2fbeaadd6f72b2ff66277",
     "semantic_hash": ""
   },
   "src-tauri/src/lib.rs": {
-    "mtime": 1783163324.4388819,
-    "ast_hash": "599cefbb3a96719d3561b32328310f28",
+    "mtime": 1783171003.2958188,
+    "ast_hash": "8589dae53833fe0e7340dcffdc91bcb7",
     "semantic_hash": ""
   },
   "src-tauri/src/main.rs": {
@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "src-tauri/src/pipeline.rs": {
-    "mtime": 1783164260.7914577,
-    "ast_hash": "76f13049f40d08c9217b54e41f9a380c",
+    "mtime": 1783171003.2963347,
+    "ast_hash": "e74efa4c962eae4534cf4bc71e5c9762",
     "semantic_hash": ""
   },
   "src-tauri/tauri.conf.json": {
@@ -160,8 +160,8 @@
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1783163760.1270201,
-    "ast_hash": "09e3be35ad656cb93be014f4a5959108",
+    "mtime": 1783164630.1290684,
+    "ast_hash": "1b4b8f596a0f280ddaa59a12080bcff4",
     "semantic_hash": ""
   },
   "src/main.tsx": {
@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1783157782.3065622,
-    "ast_hash": "b26bcb71b469d3f4d0dbcd769a72ae2c",
+    "mtime": 1783171866.0499225,
+    "ast_hash": "51e45eccbe3009e58553aa20cdeee097",
     "semantic_hash": ""
   },
   "docs/Smriti_PRD_v2.md": {
@@ -220,7 +220,7 @@
     "semantic_hash": ""
   },
   "graphify-out/converted/ledger_01_d1e4ee75.md": {
-    "mtime": 1783164275.030814,
+    "mtime": 1783171871.1332352,
     "ast_hash": "97f1d44b0ac52c76bd91c5142cc567b6",
     "semantic_hash": ""
   },
@@ -230,8 +230,8 @@
     "semantic_hash": ""
   },
   "mcp/README.md": {
-    "mtime": 1783157782.3077478,
-    "ast_hash": "5e2372aa679a1d9ad313cb0b74e50ac1",
+    "mtime": 1783164630.1218066,
+    "ast_hash": "5f0479919b73eead325886f5fa0d9827",
     "semantic_hash": ""
   },
   "parser/requirements.txt": {
@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "samples/README.md": {
-    "mtime": 1783157039.8856664,
-    "ast_hash": "4a3327baea31e0978dc276d4ccd60d52",
+    "mtime": 1783171866.7962756,
+    "ast_hash": "95bcd0f4024e7feb7fc8cf904d04d476",
     "semantic_hash": ""
   },
   "docs/Hackathon Playbook Rules, Evaluation and Topics.pdf": {
@@ -330,8 +330,8 @@
     "semantic_hash": ""
   },
   "shared/constants.ts": {
-    "mtime": 1783157022.5188766,
-    "ast_hash": "ff6e4d5af054063c189e3cd009ccbaee",
+    "mtime": 1783170995.534152,
+    "ast_hash": "6db6a1d8f7ef291f3da27faf82a68534",
     "semantic_hash": ""
   },
   "samples/good/report_01.pdf": {
@@ -375,8 +375,8 @@
     "semantic_hash": ""
   },
   "mcp/src/lib/smriti-bridge.ts": {
-    "mtime": 1783164262.389109,
-    "ast_hash": "f79e6cb38a2dfa239ed92d25f7e57cec",
+    "mtime": 1783164637.580797,
+    "ast_hash": "0f4aa57d7880697aa4e30aa4842cafb8",
     "semantic_hash": ""
   },
   "mcp/src/modules/document-intelligence/document-intelligence.module.ts": {
@@ -395,33 +395,23 @@
     "semantic_hash": ""
   },
   "mcp/src/modules/document-intelligence/document-intelligence.service.ts": {
-    "mtime": 1783157782.3106108,
-    "ast_hash": "bdfd72be5176fa5395f168e72f2b43d4",
+    "mtime": 1783170995.5170412,
+    "ast_hash": "92758c3391be268f5eb7f7b47c16196c",
     "semantic_hash": ""
   },
   "mcp/src/modules/document-intelligence/document-intelligence.tools.ts": {
-    "mtime": 1783157782.3107862,
-    "ast_hash": "3e080d0aef76a40c2d36395d261a624b",
+    "mtime": 1783170995.5172923,
+    "ast_hash": "bce52f198d8a3b854e1a3bf759e89d9b",
     "semantic_hash": ""
   },
   "parser/mcp_bridge.py": {
-    "mtime": 1783163372.7032316,
-    "ast_hash": "0c9c8d938b64f617b47e28fd0964599c",
-    "semantic_hash": ""
-  },
-  "shared/constants.d.ts": {
-    "mtime": 1783157782.312566,
-    "ast_hash": "b7b088b0684c30d75b886262839e6148",
-    "semantic_hash": ""
-  },
-  "shared/constants.js": {
-    "mtime": 1783157782.312799,
-    "ast_hash": "5101595228e4aa5ba82fea20f6483f42",
+    "mtime": 1783171003.2950966,
+    "ast_hash": "8f0696a812d32175900e21bbc0441f6e",
     "semantic_hash": ""
   },
   "src/components/SqlPanel.tsx": {
-    "mtime": 1783164261.8696842,
-    "ast_hash": "1c8197544bd4dca793aeb061e176d40d",
+    "mtime": 1783164388.3496923,
+    "ast_hash": "d7f38fc722be10931f77149bd1d945c6",
     "semantic_hash": ""
   },
   "src/utils/fileType.ts": {
@@ -440,8 +430,8 @@
     "semantic_hash": ""
   },
   "src/components/CollectionDetail.tsx": {
-    "mtime": 1783164262.3599665,
-    "ast_hash": "98f12a71d1defde0c068d483afe88e70",
+    "mtime": 1783171523.1233134,
+    "ast_hash": "e6086a9126e6e4c9e601f7385209bc3b",
     "semantic_hash": ""
   },
   "src/components/CollectionList.tsx": {
@@ -512,6 +502,876 @@
   "src/components/Pagination.tsx": {
     "mtime": 1783163705.149394,
     "ast_hash": "b89561fefbe902cad970f8a872593f60",
+    "semantic_hash": ""
+  },
+  "mcp/deploy-project.mjs": {
+    "mtime": 1783164630.1219993,
+    "ast_hash": "a8a8c6bf22779a90dbc61b4f4c2fee30",
+    "semantic_hash": ""
+  },
+  "mcp/scripts/export-templates.mjs": {
+    "mtime": 1783164630.1236038,
+    "ast_hash": "63d971b80c1dc1175a6a80fa4dab7db9",
+    "semantic_hash": ""
+  },
+  "mcp/scripts/setup-cloud-parser.mjs": {
+    "mtime": 1783164630.123727,
+    "ast_hash": "06314b1a0427a7d4537ab85d0d98aae1",
+    "semantic_hash": ""
+  },
+  "mcp/src/lib/smriti-bridge-native.ts": {
+    "mtime": 1783164630.123913,
+    "ast_hash": "ccfd69ac7938a7cb9750cfcfddd07b0c",
+    "semantic_hash": ""
+  },
+  "mcp/src/lib/smriti-paths.ts": {
+    "mtime": 1783170995.5168228,
+    "ast_hash": "471bc2332a60fe119a0f886aadf9adec",
+    "semantic_hash": ""
+  },
+  "nitrochat/.eslintrc.json": {
+    "mtime": 1783170995.5176842,
+    "ast_hash": "165f202581ec63008c8667069a175018",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/auth/callback/route.ts": {
+    "mtime": 1783170995.5190706,
+    "ast_hash": "fd55cd63f3cec880dec7d605b0480bb6",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/auth/login/route.ts": {
+    "mtime": 1783170995.5192056,
+    "ast_hash": "f2d513b1b73cf7444a413aefafa2618c",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/auth/refresh/route.ts": {
+    "mtime": 1783170995.5193317,
+    "ast_hash": "3a36571faa5af717e2515dbba85dacfb",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/auth/token/route.ts": {
+    "mtime": 1783170995.5194457,
+    "ast_hash": "03c445c21118b71996b1d697bee537df",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/auth/zitadel/callback/route.ts": {
+    "mtime": 1783170995.519647,
+    "ast_hash": "c1367d30300294198c674618979453c5",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/auth/zitadel/login/route.ts": {
+    "mtime": 1783170995.5197947,
+    "ast_hash": "b4401b0ea8bc7071f1db04d78757eed1",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/auth/zitadel/refresh/route.ts": {
+    "mtime": 1783170995.519944,
+    "ast_hash": "4263361eb69b6797da452098286adf1f",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/auth/zitadel/token/route.ts": {
+    "mtime": 1783170995.5200963,
+    "ast_hash": "b38a62720f665da6340fe03b47aa175d",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/chat/route.ts": {
+    "mtime": 1783170995.5202692,
+    "ast_hash": "35fa1489aebb4f8399cf65dc79304b0a",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/chats/[id]/route.ts": {
+    "mtime": 1783170995.5204625,
+    "ast_hash": "40cba5b36c6ab3af7273870138371d74",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/chats/route.ts": {
+    "mtime": 1783170995.5205426,
+    "ast_hash": "ca88f7e3a0363fe4e85d0e62f831ee22",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/config/route.ts": {
+    "mtime": 1783170995.520712,
+    "ast_hash": "7f45f92a1e6f729bb1be51a21dee88b4",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/gateway/models/route.ts": {
+    "mtime": 1783170995.5209358,
+    "ast_hash": "0945d9cdc1dc496bdc9bd5b140d584a0",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/mcp/message/route.ts": {
+    "mtime": 1783170995.5211442,
+    "ast_hash": "acb8896ef53566084a7728d2396fdd2b",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/mcp/sse/route.ts": {
+    "mtime": 1783170995.521277,
+    "ast_hash": "9ebb4f465f9a8e5bcf5c62814cb25f8b",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/api/threads/[...path]/route.ts": {
+    "mtime": 1783170995.5214489,
+    "ast_hash": "467ce029a17e5907272ca6e5c657a544",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/embed/page.tsx": {
+    "mtime": 1783170995.5217972,
+    "ast_hash": "7d12bbf91e92bb18785d8baf3ca4c14e",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/layout.tsx": {
+    "mtime": 1783170995.522008,
+    "ast_hash": "7c453b9a852180f1a7aeb131f76a8399",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/oauth/callback/page.tsx": {
+    "mtime": 1783170995.5221918,
+    "ast_hash": "3008b1d719512fd57c8eaa5ba3bdf863",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/oauth/zitadel-callback/page.tsx": {
+    "mtime": 1783170995.522312,
+    "ast_hash": "264a75e2bff4a9207c4ba2353c0e262b",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/page.tsx": {
+    "mtime": 1783170995.5224566,
+    "ast_hash": "98d4128e8c6a0a9e68ffc26857cce522",
+    "semantic_hash": ""
+  },
+  "nitrochat/app/try-embed/page.tsx": {
+    "mtime": 1783170995.5226376,
+    "ast_hash": "49721493b04f1b0c55b518a27d105144",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/AppToaster.tsx": {
+    "mtime": 1783170995.5228488,
+    "ast_hash": "cfc95b3d9f53b155efff979e80fa0a26",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/AuthModal.tsx": {
+    "mtime": 1783170995.5229352,
+    "ast_hash": "3aca09b08c3af753fd54ada0b536602e",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/ChatInput.tsx": {
+    "mtime": 1783170995.5230548,
+    "ast_hash": "b226e7aabb4aafdd7cbf4ebe9c49f3d3",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/ChatInputEmbed.tsx": {
+    "mtime": 1783170995.5231822,
+    "ast_hash": "3542cd1975bb3b22a2f1cdc104c59a3c",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/ChatMessage.tsx": {
+    "mtime": 1783170995.5232928,
+    "ast_hash": "db9fa2978196be92a3e05f18521fdaa3",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/ConfirmModal.tsx": {
+    "mtime": 1783170995.5233808,
+    "ast_hash": "9b99db346124d19f946a434cf0836592",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/CreditsExhaustedModal.tsx": {
+    "mtime": 1783170995.5234604,
+    "ast_hash": "cdef621df5ded6e1e7d41425a7f8eff8",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/EmbedChatFooter.tsx": {
+    "mtime": 1783170995.5235476,
+    "ast_hash": "170ac02ad317f6c575322909911a986b",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/EmbedContent.tsx": {
+    "mtime": 1783170995.5236864,
+    "ast_hash": "555185af4b37bc40e4194ce33e5f425d",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/EmbedSidebar.tsx": {
+    "mtime": 1783170995.5239048,
+    "ast_hash": "68c383015db84b0922b23702ed41bd88",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/EmbedStandaloneHeader.tsx": {
+    "mtime": 1783170995.5239885,
+    "ast_hash": "76973d93efddaae22703f5d0f4cb297b",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/InvalidKeyModal.tsx": {
+    "mtime": 1783170995.5240657,
+    "ast_hash": "241d67d277d3e9c6837c67e945a9f940",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/MarkdownRenderer.tsx": {
+    "mtime": 1783170995.5241442,
+    "ast_hash": "f0263097fed3f4d2f0668e97693ffb42",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/McpWidget.tsx": {
+    "mtime": 1783170995.5242612,
+    "ast_hash": "bc3eecdf588c4d6943aca2750ac6be10",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/ModelSelector.tsx": {
+    "mtime": 1783170995.5243926,
+    "ast_hash": "9c3fa00565e5d961c8b1ade6b7e173ca",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/Navbar.tsx": {
+    "mtime": 1783170995.5244868,
+    "ast_hash": "69b91495de7e47ce48f16015e7b11a16",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/OAuthLoginModal.tsx": {
+    "mtime": 1783170995.5245876,
+    "ast_hash": "e8f8a8ba0fee2651f98f9bbca5bc1d90",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/PersistStorageQuotaNotice.tsx": {
+    "mtime": 1783170995.5246608,
+    "ast_hash": "3f1c81b07928241822d4dc94b4ffef4c",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/SessionCompletedBanner.tsx": {
+    "mtime": 1783170995.524758,
+    "ast_hash": "138314daef39e12b20acb7dbffe1fe49",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/SettingsPanel.tsx": {
+    "mtime": 1783170995.5249226,
+    "ast_hash": "b6dd2b1c318fe9682bad7542166a7656",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/Sidebar.tsx": {
+    "mtime": 1783170995.525029,
+    "ast_hash": "96035e928effc80652b74572067d5f8f",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/StandaloneChatbotAvatar.tsx": {
+    "mtime": 1783170995.5251038,
+    "ast_hash": "4258ab052600f5abfe778d800771135b",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/VoiceChatPopup.tsx": {
+    "mtime": 1783170995.525238,
+    "ast_hash": "9de1439fc1c463fa856ff5cf289a0ad4",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/VoiceOrbOverlay.tsx": {
+    "mtime": 1783170995.5253413,
+    "ast_hash": "b4be4990cc8d9fdae8c368dcca435c2d",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/VoiceSettingsModal.tsx": {
+    "mtime": 1783170995.5256772,
+    "ast_hash": "d3a8716b12aac6ed2bd2cbbe9035199b",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/WelcomeScreen.tsx": {
+    "mtime": 1783170995.5257688,
+    "ast_hash": "1b701982f117f93eeb268721944446c8",
+    "semantic_hash": ""
+  },
+  "nitrochat/components/ZitadelLoginModal.tsx": {
+    "mtime": 1783170995.525875,
+    "ast_hash": "e5c33c0cb8b1e3a244ed17a134fea705",
+    "semantic_hash": ""
+  },
+  "nitrochat/config/runtime-config-awli-mock.json": {
+    "mtime": 1783170995.5260112,
+    "ast_hash": "28dfeeb1a99fb43eda7269936f2ac5ad",
+    "semantic_hash": ""
+  },
+  "nitrochat/config/runtime-config.json": {
+    "mtime": 1783170995.5261064,
+    "ast_hash": "1578082dba9f77f3c35d3788eff1c3a2",
+    "semantic_hash": ""
+  },
+  "nitrochat/debug-test.js": {
+    "mtime": 1783170995.5261772,
+    "ast_hash": "3167879f8c354ab985fbdc6144ee9ecd",
+    "semantic_hash": ""
+  },
+  "nitrochat/debug_mcp.js": {
+    "mtime": 1783170995.526256,
+    "ast_hash": "be6cd4b737786278cdd7a98fe72a11b9",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/auth-server.ts": {
+    "mtime": 1783170995.5284202,
+    "ast_hash": "9798be07d8a561e33f0571091280e0b2",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/chat-api-headers.ts": {
+    "mtime": 1783170995.5284925,
+    "ast_hash": "a0b2fc2a0ae45c233856b4234bce8646",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/chat-api-payload.ts": {
+    "mtime": 1783170995.5285618,
+    "ast_hash": "5cd1dede2543edc74e0435828b480284",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/chat-api-payload.verify.ts": {
+    "mtime": 1783170995.5286288,
+    "ast_hash": "fcc10325cf23c64d1ab78fa09d982ee5",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/chat-persistence-fetch.ts": {
+    "mtime": 1783170995.5286982,
+    "ast_hash": "9fee733de286743bb3ad3c97933a2396",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/chat-stream-sse.ts": {
+    "mtime": 1783170995.5287695,
+    "ast_hash": "57e97b24a7049a9c5951019dbcd286cd",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/context-utils.ts": {
+    "mtime": 1783170995.5288417,
+    "ast_hash": "5e21e67bc32d216dd89e625f4f37b191",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/cookies.ts": {
+    "mtime": 1783170995.528901,
+    "ast_hash": "83b9dcf2643cabc89fef8ae30353c497",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/db.ts": {
+    "mtime": 1783170995.5289655,
+    "ast_hash": "87ebdbe8ba8c10713a6df53d1ec9d62c",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/embed-layout.ts": {
+    "mtime": 1783170995.5290287,
+    "ast_hash": "02ca03b60bda896ac942fc32e77b55ed",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/end-user-gateway.ts": {
+    "mtime": 1783170995.5290883,
+    "ast_hash": "42244ded438cb7bd3b350bf2a29e26a2",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/format-fetch-error-chain.ts": {
+    "mtime": 1783170995.5291498,
+    "ast_hash": "9241a7141fc6c1eedc0519005d32dfdc",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/gateway-env.ts": {
+    "mtime": 1783170995.5292118,
+    "ast_hash": "3878c2437960b2490df76b43762be502",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/generate-chat-title.ts": {
+    "mtime": 1783170995.5292792,
+    "ast_hash": "3f2aa65de9ddc3d1804d5d82097eb11c",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/mcp-client.ts": {
+    "mtime": 1783170995.5293622,
+    "ast_hash": "aeb260f232ccdc6df10639ca97c19fc0",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/mcp-tool-runner.ts": {
+    "mtime": 1783170995.5294366,
+    "ast_hash": "459bb67189c9191b33fe6693fa10d989",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/mcp-user-feedback.ts": {
+    "mtime": 1783170995.5295036,
+    "ast_hash": "93424f6b8ada888a48eb053ba2ef29b7",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/nc-tool-loop.verify.ts": {
+    "mtime": 1783170995.5295787,
+    "ast_hash": "e13efa49775be29ecd9dd20ed58078fa",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/oauth.ts": {
+    "mtime": 1783170995.529656,
+    "ast_hash": "599fff045c96ea5756125199f29ae113",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/process-llm-tool-round.ts": {
+    "mtime": 1783170995.5297215,
+    "ast_hash": "e628756fd9fbb709327c2f52a7d3de7a",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/runtime-config-file.ts": {
+    "mtime": 1783170995.529787,
+    "ast_hash": "95b994b7267e74c17d6cecc15de88a56",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/standalone-clean.ts": {
+    "mtime": 1783170995.5298471,
+    "ast_hash": "5022e42d1000d1802f784f61695988cf",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/standalone-layout.ts": {
+    "mtime": 1783170995.5299153,
+    "ast_hash": "f9171cfa76a94dcd3799b15013f8f726",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/store.ts": {
+    "mtime": 1783170995.5300055,
+    "ast_hash": "47cff2dad74edd2e70b29ab01a08db9f",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/sync-document-title.ts": {
+    "mtime": 1783170995.5300796,
+    "ast_hash": "7f40a1dc653f634922b3b5ee9a5cd43e",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/theme-runtime.ts": {
+    "mtime": 1783170995.530159,
+    "ast_hash": "20dda70c55a9d7f8076952c9b3cbeba0",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/thread-message-metadata.ts": {
+    "mtime": 1783170995.5302236,
+    "ast_hash": "ac5ce5f9e2af067266bdb032391ec264",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/thread-message-metadata.verify.ts": {
+    "mtime": 1783170995.5302835,
+    "ast_hash": "ebbe3a84d19fecf9650e42ae9ea8a3fd",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/threads-api.ts": {
+    "mtime": 1783170995.5303545,
+    "ast_hash": "66da6de4a23343811114fa6ff5e7d41c",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/threads-persist.ts": {
+    "mtime": 1783170995.5304148,
+    "ast_hash": "5e7501d90afb0ed590285ac29a9fbc0d",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/tool-call-chain.ts": {
+    "mtime": 1783170995.530485,
+    "ast_hash": "e54b78d73995efcd29e9a5d15e8fad1a",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/tool-call-chain.verify.ts": {
+    "mtime": 1783170995.5305448,
+    "ast_hash": "5a1af198d2528b1cfdffb685351799e7",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/utils.ts": {
+    "mtime": 1783170995.5306053,
+    "ast_hash": "e82c7afced674ec280f6a0f55707a9a6",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/voice-utils.ts": {
+    "mtime": 1783170995.5306666,
+    "ast_hash": "be3feff3f15d12b17d95b8baa6bd6639",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/zitadel-auth.ts": {
+    "mtime": 1783170995.5307343,
+    "ast_hash": "76f4c8aeb6469a1bfee11a051ad5db46",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/zitadel-auth.verify.ts": {
+    "mtime": 1783170995.530801,
+    "ast_hash": "65b83bd5a4ef906f94025cdc588d5a92",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/zitadel-jwks.ts": {
+    "mtime": 1783170995.5308723,
+    "ast_hash": "866284f1f30eecf33a6bc42c9089aea3",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/zitadel-refresh.ts": {
+    "mtime": 1783170995.5309465,
+    "ast_hash": "b4b4ff9cc95aa80f2e53340938dbcf39",
+    "semantic_hash": ""
+  },
+  "nitrochat/lib/zitadel.ts": {
+    "mtime": 1783170995.5310163,
+    "ast_hash": "d824df5a92598ddad26cfa05b88e00cf",
+    "semantic_hash": ""
+  },
+  "nitrochat/middleware.ts": {
+    "mtime": 1783170995.531076,
+    "ast_hash": "5c77c75c77ce3d02d075030db6ee6e65",
+    "semantic_hash": ""
+  },
+  "nitrochat/models/Chat.ts": {
+    "mtime": 1783170995.5311794,
+    "ast_hash": "56e87954a3418ee1f2703760ccf228fd",
+    "semantic_hash": ""
+  },
+  "nitrochat/models/User.ts": {
+    "mtime": 1783170995.5312471,
+    "ast_hash": "b0c5b2b33017e1add59803cd98782849",
+    "semantic_hash": ""
+  },
+  "nitrochat/next-env.d.ts": {
+    "mtime": 1783170995.5313091,
+    "ast_hash": "b5ed9dd8b4c5ba8e5ab8e6a379c15838",
+    "semantic_hash": ""
+  },
+  "nitrochat/next.config.mjs": {
+    "mtime": 1783170995.5313764,
+    "ast_hash": "4ff864feb021fae53aaa77e9e2dc0b6c",
+    "semantic_hash": ""
+  },
+  "nitrochat/nitrochat.config.ts": {
+    "mtime": 1783170995.5314586,
+    "ast_hash": "11082b0c996403f7633077f94bdd43a7",
+    "semantic_hash": ""
+  },
+  "nitrochat/package.json": {
+    "mtime": 1783170995.5320442,
+    "ast_hash": "b155b87ffdc1283031338a3baef2dcc4",
+    "semantic_hash": ""
+  },
+  "nitrochat/postcss.config.mjs": {
+    "mtime": 1783170995.5321248,
+    "ast_hash": "0c492a95f7f4f0c1b76a11e6167c57bb",
+    "semantic_hash": ""
+  },
+  "nitrochat/public/embed.js": {
+    "mtime": 1783170995.5323257,
+    "ast_hash": "f2a5029d39b85643c4d5f9b8008e26df",
+    "semantic_hash": ""
+  },
+  "nitrochat/scripts/test-zitadel-auth.ts": {
+    "mtime": 1783170995.5327125,
+    "ast_hash": "1e8271cf708542a0dd9a0ac93ad40200",
+    "semantic_hash": ""
+  },
+  "nitrochat/tailwind.config.ts": {
+    "mtime": 1783170995.5327904,
+    "ast_hash": "a0821bae0f68ea270216fdc1d460317f",
+    "semantic_hash": ""
+  },
+  "nitrochat/templates/CenteredTemplate.tsx": {
+    "mtime": 1783170995.5329363,
+    "ast_hash": "ffd5776ef85e1508d548a37938050f0e",
+    "semantic_hash": ""
+  },
+  "nitrochat/templates/CompactTemplate.tsx": {
+    "mtime": 1783170995.5330293,
+    "ast_hash": "c1efab9e6bb928739a5d6cc2c546295d",
+    "semantic_hash": ""
+  },
+  "nitrochat/templates/SidebarTemplate.tsx": {
+    "mtime": 1783170995.533162,
+    "ast_hash": "34d3f10c97cf6357d5b830d71d2a87e9",
+    "semantic_hash": ""
+  },
+  "nitrochat/templates/SplitViewTemplate.tsx": {
+    "mtime": 1783170995.533275,
+    "ast_hash": "81ad4320141225e71a33f63fb796ba76",
+    "semantic_hash": ""
+  },
+  "nitrochat/tsconfig.json": {
+    "mtime": 1783170995.5334094,
+    "ast_hash": "bcbcb52fc494785ecd34b6704cc07747",
+    "semantic_hash": ""
+  },
+  "parser/connectors/__init__.py": {
+    "mtime": 1783171003.2929573,
+    "ast_hash": "434aeab5139437289ce8e116ab4af72a",
+    "semantic_hash": ""
+  },
+  "parser/connectors/azure_blob.py": {
+    "mtime": 1783171003.2930994,
+    "ast_hash": "37468f10bc07990a2bab7306b199ea2a",
+    "semantic_hash": ""
+  },
+  "parser/connectors/base.py": {
+    "mtime": 1783171003.293245,
+    "ast_hash": "498a9930c8517b4bc7d4ac0bb66d1b5d",
+    "semantic_hash": ""
+  },
+  "parser/connectors/gcs.py": {
+    "mtime": 1783171003.2934592,
+    "ast_hash": "3997d62346387a90e7ea1ddaada639ec",
+    "semantic_hash": ""
+  },
+  "parser/connectors/gdrive.py": {
+    "mtime": 1783171003.2936733,
+    "ast_hash": "8272cc83cb1a9fe315bebe219da1ec35",
+    "semantic_hash": ""
+  },
+  "parser/connectors/s3.py": {
+    "mtime": 1783171003.2937934,
+    "ast_hash": "5152ab04ac773480748cc02f6a12ec0b",
+    "semantic_hash": ""
+  },
+  "parser/connectors_cli.py": {
+    "mtime": 1783171003.293967,
+    "ast_hash": "cd4446e4afba1d1fcd06be20c7cab74c",
+    "semantic_hash": ""
+  },
+  "parser/templates-manifest.json": {
+    "mtime": 1783164630.124672,
+    "ast_hash": "807eb9ff2e97676b0bac2b682e9ea8cf",
+    "semantic_hash": ""
+  },
+  "scripts/dev-local.sh": {
+    "mtime": 1783170995.533632,
+    "ast_hash": "58f8ecd13984b73e96da891711636943",
+    "semantic_hash": ""
+  },
+  "scripts/reset-workspace.sh": {
+    "mtime": 1783164914.1060486,
+    "ast_hash": "3e913a59f9a48d138652c169ea68bbd2",
+    "semantic_hash": ""
+  },
+  "scripts/test-all-mcp-tools.mjs": {
+    "mtime": 1783170995.5338597,
+    "ast_hash": "be603600e97067d866db47561553660c",
+    "semantic_hash": ""
+  },
+  "scripts/test-deployed-mcp-session.mjs": {
+    "mtime": 1783164630.1250658,
+    "ast_hash": "15d28921988c890d1c72c2677c573a4c",
+    "semantic_hash": ""
+  },
+  "scripts/test-deployed-mcp.mjs": {
+    "mtime": 1783164630.1252124,
+    "ast_hash": "998ed3e14e2a2357a963517dfac3f87b",
+    "semantic_hash": ""
+  },
+  "scripts/test-desktop-chat.mjs": {
+    "mtime": 1783164630.1253877,
+    "ast_hash": "5f4b8d8174256f0c7fe9ca15a68f0ec8",
+    "semantic_hash": ""
+  },
+  "scripts/test-local-data.mjs": {
+    "mtime": 1783170995.5339558,
+    "ast_hash": "d0f1668b11ef7348b57fc591757b5d25",
+    "semantic_hash": ""
+  },
+  "scripts/test-local-stack.mjs": {
+    "mtime": 1783170995.5340214,
+    "ast_hash": "84153d885f82ce2c406cc7b15f618b0d",
+    "semantic_hash": ""
+  },
+  "src-tauri/src/mcp.rs": {
+    "mtime": 1783171003.2526736,
+    "ast_hash": "8a9bdc1d71ef646cf6a2db31f3482fd0",
+    "semantic_hash": ""
+  },
+  "src/components/ChatBotView.tsx": {
+    "mtime": 1783171003.2535803,
+    "ast_hash": "c743cb350d448a977c75eb5ad12077f4",
+    "semantic_hash": ""
+  },
+  "src/components/ConnectorLogo.tsx": {
+    "mtime": 1783171520.9224663,
+    "ast_hash": "c518590a00cf06f70db97584bd527945",
+    "semantic_hash": ""
+  },
+  "src/components/ConnectorModal.tsx": {
+    "mtime": 1783171003.297296,
+    "ast_hash": "c77c4c5c3ab4bc6314a04fe565de210e",
+    "semantic_hash": ""
+  },
+  "src/components/ExportModal.tsx": {
+    "mtime": 1783171517.456049,
+    "ast_hash": "27c34c38a3d5dd6fa3270a8640432c22",
+    "semantic_hash": ""
+  },
+  "src/lib/mcp-client.ts": {
+    "mtime": 1783171003.2539718,
+    "ast_hash": "96436c9400a9dae450936956a3dd21c3",
+    "semantic_hash": ""
+  },
+  "src/lib/mcp-format.ts": {
+    "mtime": 1783171003.2541437,
+    "ast_hash": "b18cbb7eeedc6952634a0e3211f56c11",
+    "semantic_hash": ""
+  },
+  "nitrochat/.github/workflows/develop.yml": {
+    "mtime": 1783170995.517883,
+    "ast_hash": "4cab47e93aab396ab8186514b159f5f6",
+    "semantic_hash": ""
+  },
+  "nitrochat/.github/workflows/main.yml": {
+    "mtime": 1783170995.5179975,
+    "ast_hash": "4a6e11f8b1ac08f32813b4f759a0fa7c",
+    "semantic_hash": ""
+  },
+  "nitrochat/.github/workflows/sync-main-to-develop.yml": {
+    "mtime": 1783170995.5180936,
+    "ast_hash": "34b0423345e676dc38a0eee5808fad04",
+    "semantic_hash": ""
+  },
+  "nitrochat/ARCHITECTURE.md": {
+    "mtime": 1783170995.5182643,
+    "ast_hash": "1def0b957ecf82f4769fb978030f9b01",
+    "semantic_hash": ""
+  },
+  "nitrochat/CHANGELOG.md": {
+    "mtime": 1783170995.5183463,
+    "ast_hash": "6958d785ad5c5c0d58bdf680f7df8cf9",
+    "semantic_hash": ""
+  },
+  "nitrochat/NITROCHAT_CREDITS_MIGRATION.md": {
+    "mtime": 1783170995.518542,
+    "ast_hash": "d21fed21006ad65091c032628ca8879a",
+    "semantic_hash": ""
+  },
+  "nitrochat/PROJECT_OVERVIEW.md": {
+    "mtime": 1783170995.5186608,
+    "ast_hash": "b93c65ccfb63897be48b54b2b6fae3a2",
+    "semantic_hash": ""
+  },
+  "nitrochat/README.md": {
+    "mtime": 1783170995.518783,
+    "ast_hash": "0b736742ec95423827705618abd9543d",
+    "semantic_hash": ""
+  },
+  "nitrochat/buildspec.yml": {
+    "mtime": 1783170995.5227242,
+    "ast_hash": "236b9908efb1f3f88accda02875b6f28",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/DEVELOPER_WIDGET_HEIGHT_GUIDE.md": {
+    "mtime": 1783170995.5263693,
+    "ast_hash": "0c7480e6c25f07f39afee07b484cfd89",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/RUNTIME_CONFIG_ANALYSIS.md": {
+    "mtime": 1783170995.5264673,
+    "ast_hash": "2b13faaf7d63ff99f5ad79b3a06c5e3f",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/WIDGET_DYNAMIC_HEIGHT.md": {
+    "mtime": 1783170995.5265367,
+    "ast_hash": "a8698c47129eb7043b8939f26fb3c3ef",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/00-environment-and-config.md": {
+    "mtime": 1783170995.5266685,
+    "ast_hash": "3976b6d694701c8920e7bb5062ef2aa1",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/01-clickhouse-schema-and-repository.md": {
+    "mtime": 1783170995.5267773,
+    "ast_hash": "324737d4fb6cdc6bd9e450e4c35d3b2c",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/02-actor-resolution-service.md": {
+    "mtime": 1783170995.5268917,
+    "ast_hash": "7edbfcb12301d866036e8d182d7ab675",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/03-gateway-thread-handlers.md": {
+    "mtime": 1783170995.5269809,
+    "ast_hash": "9c016e193c3c565a967e8b28edfe3b1d",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/03b-resolve-thread-race-fix.md": {
+    "mtime": 1783170995.527069,
+    "ast_hash": "d23d33592c2d90e36a72ab1ba0d06964",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/04-frontend-api-client-and-store.md": {
+    "mtime": 1783170995.5271575,
+    "ast_hash": "858150cb4fc59a506455db0b61e65293",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/05-standalone-thread-bootstrap.md": {
+    "mtime": 1783170995.5272524,
+    "ast_hash": "4664c6931ee8ae0595d948b625da90c4",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/05b-userid-param-standalone.md": {
+    "mtime": 1783170995.527334,
+    "ast_hash": "b9ef83eb01052bace84276ea5e3dc691",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/06-message-persistence.md": {
+    "mtime": 1783170995.527442,
+    "ast_hash": "d9cc42973e8800aac7f3b6d42c43e24b",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/07-storage-cleanup-and-embed.md": {
+    "mtime": 1783170995.5275464,
+    "ast_hash": "a46de2b6cf818595c13bdd97c7332d89",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/08-recovery-and-resilience.md": {
+    "mtime": 1783170995.5276365,
+    "ast_hash": "8b2b5dfb34a18f60572f31b22ff4b4f2",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/09-stabilization-and-regression.md": {
+    "mtime": 1783170995.5277371,
+    "ast_hash": "43d0c88f99fe46e306d3a54acb3cbc82",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/PM-OVERVIEW.md": {
+    "mtime": 1783170995.5278351,
+    "ast_hash": "e6b5171c14404b930064445c1538aad9",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/README.md": {
+    "mtime": 1783170995.527937,
+    "ast_hash": "051b9d99feea320820607e0e22bf8da1",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/threads/standards.md": {
+    "mtime": 1783170995.528032,
+    "ast_hash": "702c22e12336461a9584552aa93feded",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/zitadel/api_only_login_plan.md": {
+    "mtime": 1783170995.528146,
+    "ast_hash": "b8a931c2ecdd0febe94a36f0248ee1ac",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/zitadel/fix_idp_implementation_plan.md": {
+    "mtime": 1783170995.528239,
+    "ast_hash": "a9376d6fbda906fba4cd822e6f07d3d9",
+    "semantic_hash": ""
+  },
+  "nitrochat/docs/zitadel/sso_bypass_integration_report.md": {
+    "mtime": 1783170995.528314,
+    "ast_hash": "83f2f504d7a93bb2eff48ddbf927fceb",
+    "semantic_hash": ""
+  },
+  "nitrochat/public/embed-test.html": {
+    "mtime": 1783170995.5322466,
+    "ast_hash": "001f0861128c2b03837cf72e8b213b89",
+    "semantic_hash": ""
+  },
+  "nitrochat/test-sse.html": {
+    "mtime": 1783170995.5333407,
+    "ast_hash": "6a12a4949b435ce8a124e8c4c136b6bf",
+    "semantic_hash": ""
+  },
+  "parser/requirements-connectors.txt": {
+    "mtime": 1783171003.2953823,
+    "ast_hash": "d53f8162881bf408bcafc843e37700b8",
+    "semantic_hash": ""
+  },
+  "samples/bad/corrupt_test.pdf": {
+    "mtime": 1783164630.1249094,
+    "ast_hash": "a38b7585347c763bdbd96053debd6fff",
+    "semantic_hash": ""
+  },
+  "nitrochat/public/logo_white.png": {
+    "mtime": 1783170995.5325224,
+    "ast_hash": "786337b6333801a57c588792dddecc18",
+    "semantic_hash": ""
+  },
+  "nitrochat/public/smriti-logo.svg": {
+    "mtime": 1783170995.532602,
+    "ast_hash": "ab5d2673f6c49b825335e10a7d25023f",
+    "semantic_hash": ""
+  },
+  "docs/ARCHITECTURE.md": {
+    "mtime": 1783171864.0159762,
+    "ast_hash": "2da00ce539510686e7f8f0679a9b13cd",
     "semantic_hash": ""
   }
 }

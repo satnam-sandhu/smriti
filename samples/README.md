@@ -1,6 +1,9 @@
 # Sample documents
 
-**Demo plugin: Finance (Banking).** Real PDF batch lives in `data/external/annual reports/`.
+**Demo plugin: Finance (Banking).**
+
+- **In repo:** synthetics under `samples/good/` and `samples/bad/`
+- **Full demo set:** [Google Drive — banking annual reports](https://drive.google.com/drive/folders/1MY6dU7JDuIlIASu5qzaHghZfMXchVSr9?usp=share_link) → extract to `data/external/annual reports/`
 
 ```
 samples/
@@ -28,9 +31,13 @@ Legacy aliases `clinical_` / `receipt_` still detected for backward compatibilit
 
 ## Primary demo source
 
+Public annual-report PDFs are **not** committed to git (size). Download from Google Drive and place here:
+
 ```
 data/external/annual reports/*.pdf
 ```
+
+Until then, use `samples/good/report_01.pdf` for parser and UI smoke tests.
 
 ## Expected JSON example (FinancialReport)
 

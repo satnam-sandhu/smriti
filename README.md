@@ -6,6 +6,38 @@ Enterprise multimodal document ingestion — Hackathon MVP (Topic 2).
 
 **Demo plugin:** Finance (Banking) — annual reports, ledgers, bank statements.
 
+**Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — stack choices, medallion pipeline, MCP surface, hackathon evaluation mapping.
+
+## For judges
+
+Clone → setup → run. Repo intentionally excludes runtime `data/` (Bronze/Silver/Gold); use bundled synthetics or download the full demo set.
+
+```bash
+git clone git@github.com:satnam-sandhu/smriti.git && cd smriti
+bash scripts/setup.sh
+cp .env.example .env   # OPENROUTER_API_KEY needed only for first-time layout learning
+npm run dev            # desktop app with pipeline dashboard
+npm run dev:mcp:http   # MCP server on :3000
+```
+
+| What | Where |
+|------|-------|
+| Synthetic samples (in repo) | `samples/good/` — PDF, Excel, PNG + `samples/bad/` corrupt files |
+| Full banking demo PDFs | [Google Drive folder](https://drive.google.com/drive/folders/1MY6dU7JDuIlIASu5qzaHghZfMXchVSr9?usp=share_link) — download into `data/external/annual reports/` |
+| Hackathon rules & scoring | `docs/Hackathon Playbook Rules, Evaluation and Topics.pdf` |
+| Architecture & stack justification | `docs/ARCHITECTURE.md` |
+| Product requirements | `docs/Smriti_PRD_v2.md` |
+
+After downloading demo PDFs:
+
+```bash
+mkdir -p "data/external/annual reports"
+# copy downloaded PDFs into data/external/annual reports/
+parser/.venv/bin/python3 parser/cli.py --file "data/external/annual reports/PL.pdf"
+```
+
+Second run on the same file prints `LLM_CALL: no` (deterministic re-parse).
+
 ## Live demo
 
 | Service | URL |
@@ -37,9 +69,9 @@ smriti/
 ├── nitrochat/           # NitroChat UI for MCP (develop branch, Smriti-branded)
 ├── shared/types.ts      # API contract — all team reads this
 ├── shared/constants.ts  # Active plugin + Gold partition paths
-├── data/                # Unified workspace (Bronze/Silver/Gold/SQLite)
-│   └── external/        # Real demo PDFs — annual reports (banking)
-├── samples/             # Synthetics + expected JSON (Person 4)
+├── data/                # Unified workspace (gitignored — created by setup.sh)
+│   └── external/        # Demo PDFs — download from Google Drive (see above)
+├── samples/             # Synthetics + expected JSON (always in repo)
 ├── docs/                # PRD + team task files
 └── scripts/setup.sh
 ```

@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import type { AnalyticsQueryResult, CollectionSummary, DocType } from "../../shared/types";
 import { CollectionTable } from "./CollectionTable";
 import { ConnectorModal } from "./ConnectorModal";
+import { ExportModal } from "./ExportModal";
 import { DropZone } from "./DropZone";
 import { BackIcon } from "./icons";
 import { SqlPanel } from "./SqlPanel";
@@ -14,7 +15,7 @@ const DOC_TYPE_LABELS: Record<DocType, string> = {
   statement: "Bank Statement",
 };
 
-function CloudIcon() {
+function CloudImportIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -31,6 +32,27 @@ function CloudIcon() {
         strokeLinejoin="round"
       />
       <path d="M12 12v5m0-5l-2 2m2-2l2 2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CloudExportIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      width="16"
+      height="16"
+      aria-hidden
+    >
+      <path
+        d="M7 18a4 4 0 010-8 5 5 0 019.6-1.3A3.5 3.5 0 0117 18H7z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M12 17V12m0 0l-2-2m2 2l2-2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -88,6 +110,7 @@ export function CollectionDetail({
   const [busy, setBusy] = useState(false);
   const [processingCount, setProcessingCount] = useState(0);
   const [showConnector, setShowConnector] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const ingestingRef = useRef(false);
 
   const loadTable = useCallback(async () => {
@@ -202,10 +225,19 @@ export function CollectionDetail({
         <button
           type="button"
           className="btn btn-secondary"
+          onClick={() => setShowExport(true)}
+          disabled={busy}
+        >
+          <CloudExportIcon />
+          Export to cloud
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
           onClick={() => setShowConnector(true)}
           disabled={busy}
         >
-          <CloudIcon />
+          <CloudImportIcon />
           Import from cloud
         </button>
       </div>
@@ -218,6 +250,8 @@ export function CollectionDetail({
           onImport={handleConnectorImport}
         />
       )}
+
+      {showExport && <ExportModal onClose={() => setShowExport(false)} />}
 
       <div className="card collection-data-card">
         <div className="card-header">
