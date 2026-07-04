@@ -21,7 +21,8 @@ In [NitroStudio](https://nitrostack.ai/studio), point the chatbot’s MCP server
 bash scripts/setup.sh
 cp .env.example .env   # add OPENROUTER_API_KEY
 npm run dev            # Smriti desktop app
-npm run dev:mcp        # NitroStack MCP server
+npm run dev:mcp:http    # MCP HTTP on :3000 (for NitroChat / desktop)
+npm run dev:mcp         # MCP STDIO (for NitroStudio only)
 npm run dev:nitrochat  # NitroChat UI (port 3003)
 ```
 
@@ -74,17 +75,28 @@ See [mcp/README.md](mcp/README.md) for full tool list and architecture.
 
 ## NitroChat (local)
 
-The `nitrochat/` folder is the [NitroChat](https://github.com/nitrocloudofficial/nitrochat) `develop` branch, configured for Smriti MCP tools.
+Local stack: **MCP on :3000**, **NitroChat on :3003**, **LLM via NitroStack gateway** (`https://gateway.dev.nitrostack.ai`).
 
 ```bash
-npm install --prefix nitrochat
+cp mcp/.env.example mcp/.env
 cp nitrochat/.env.smriti.example nitrochat/.env.local
-# Set NITROCHAT_GATEWAY_ENDPOINT + NITROCHAT_GATEWAY_API_KEY in .env.local
-npm run dev:nitrochat   # http://localhost:3003
-npm run dev:mcp         # MCP on http://localhost:3000 (local override in .env.local)
+cp .env.example .env
+# Set NITROCHAT_GATEWAY_API_KEY in nitrochat/.env.local
+
+npm run dev:local      # MCP + NitroChat together
+npm run dev            # Smriti desktop (uses localhost URLs from .env)
 ```
 
-Runtime branding and MCP URL defaults live in `nitrochat/config/runtime-config.json` (production MCP URL from `shared/constants.ts`).
+| Service | URL |
+|---------|-----|
+| Smriti MCP | http://localhost:3000 |
+| NitroChat | http://localhost:3003 |
+| NitroChat embed | http://localhost:3003/embed |
+| LLM gateway | https://gateway.dev.nitrostack.ai |
+
+Cloud URLs remain documented above for deployed demos.
+
+Local MCP reads/writes **`data/`** (Bronze, Silver, Gold, `smriti-state.json`, `smriti.db`) — same folder as the Tauri desktop app.
 
 ## Team assignments
 

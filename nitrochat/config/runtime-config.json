@@ -1,6 +1,6 @@
 {
     "mcp": {
-        "serverUrl": "https://atlas-mcp-6a47d4fa-biliings-org-7cb21717.dev.nitrocloud.ai",
+        "serverUrl": "http://localhost:3000",
         "apiKey": null
     },
     "branding": {

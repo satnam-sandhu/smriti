@@ -26,11 +26,15 @@ echo "==> Creating data directories..."
 mkdir -p data/bronze data/silver data/gold/domain=finance/year=2026/month=07 data/quarantine
 mkdir -p samples/good samples/bad samples/expected
 
-# Initialize SQLite schema via MCP bridge
+# Initialize SQLite schema via MCP bridge (uses smriti/data workspace)
 echo "==> Initializing workspace database..."
-parser/.venv/bin/python3 parser/mcp_bridge.py metrics >/dev/null 2>&1 || true
+SMRITI_ROOT="$ROOT" SMRITI_WORKSPACE="$ROOT/data" \
+  parser/.venv/bin/python3 parser/mcp_bridge.py metrics >/dev/null 2>&1 || true
 
-# Env file
+# MCP local env — workspace under smriti/data/
+if [ ! -f mcp/.env ]; then
+  cp mcp/.env.example mcp/.env
+fi
 if [ ! -f .env ]; then
   cp .env.example .env
   echo "==> Created .env from .env.example — add OPENROUTER_API_KEY"

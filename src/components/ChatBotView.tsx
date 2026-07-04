@@ -78,7 +78,7 @@ export function ChatBotView() {
             id: "welcome",
             role: "system",
             content:
-              "Smriti AI — connected to production MCP. Use quick tools or ask about metrics, plugins, and templates.",
+              "Smriti AI — connected to local MCP. LLM replies go through NitroStack gateway via NitroChat.",
           },
         ]);
       } catch (err) {
