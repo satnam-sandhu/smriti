@@ -53,31 +53,46 @@ async function askNitroChat(messages: ChatMessage[]): Promise<string> {
 
 export function ChatBotView() {
   const [tools, setTools] = useState<McpTool[]>([]);
-  const [mcpOnline, setMcpOnline] = useState<boolean | null>(null);
+  const [connectStatus, setConnectStatus] = useState<"connecting" | "ready" | "error">("connecting");
+  const [connectError, setConnectError] = useState<string | null>(null);
   const [showMcp, setShowMcp] = useState(true);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "system",
-      content:
-        "Smriti Chat — connected to production MCP. Use quick tools or ask about metrics, plugins, and templates.",
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const mcpOnline = connectStatus === "ready";
+  const connecting = connectStatus === "connecting";
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const list = await listMcpTools(MCP_SERVER_URL);
+        if (cancelled) return;
+        setTools(list);
+        setConnectStatus(list.length > 0 ? "ready" : "error");
+        setConnectError(list.length > 0 ? null : "No MCP tools available");
+        setMessages([
+          {
+            id: "welcome",
+            role: "system",
+            content:
+              "Smriti AI — connected to production MCP. Use quick tools or ask about metrics, plugins, and templates.",
+          },
+        ]);
+      } catch (err) {
         if (!cancelled) {
-          setTools(list);
-          setMcpOnline(list.length > 0);
+          setConnectStatus("error");
+          setConnectError(err instanceof Error ? err.message : String(err));
+          setMessages([
+            {
+              id: "welcome-error",
+              role: "system",
+              content: "Could not connect to MCP. Check your network and try again.",
+            },
+          ]);
         }
-      } catch {
-        if (!cancelled) setMcpOnline(false);
       }
     })();
     return () => {
@@ -95,26 +110,27 @@ export function ChatBotView() {
 
   const runTool = useCallback(
     async (name: string, args: Record<string, unknown> = {}, label?: string) => {
+      if (connecting || !mcpOnline) return;
       setBusy(true);
       append("user", label ?? `Run tool: ${name}`);
-    try {
-      const result = await callMcpTool(MCP_SERVER_URL, name, args);
-      append("assistant", result);
-    } catch (err) {
-      append(
-        "assistant",
-        err instanceof Error ? err.message : String(err),
-      );
-    } finally {
-      setBusy(false);
-    }
-  },
-  [append],
-);
+      try {
+        const result = await callMcpTool(MCP_SERVER_URL, name, args);
+        append("assistant", result);
+      } catch (err) {
+        append(
+          "assistant",
+          err instanceof Error ? err.message : String(err),
+        );
+      } finally {
+        setBusy(false);
+      }
+    },
+    [append, connecting, mcpOnline],
+  );
 
   const send = useCallback(async () => {
     const text = input.trim();
-    if (!text || busy) return;
+    if (!text || busy || connecting || !mcpOnline) return;
     setInput("");
     setBusy(true);
     append("user", text);
@@ -137,7 +153,23 @@ export function ChatBotView() {
     } finally {
       setBusy(false);
     }
-  }, [append, busy, input, messages]);
+  }, [append, busy, connecting, input, messages, mcpOnline]);
+
+  const retryConnect = useCallback(() => {
+    setConnectStatus("connecting");
+    setConnectError(null);
+    setTools([]);
+    void listMcpTools(MCP_SERVER_URL)
+      .then((list) => {
+        setTools(list);
+        setConnectStatus(list.length > 0 ? "ready" : "error");
+        setConnectError(list.length > 0 ? null : "No MCP tools available");
+      })
+      .catch((err) => {
+        setConnectStatus("error");
+        setConnectError(err instanceof Error ? err.message : String(err));
+      });
+  }, []);
 
   return (
     <div className="chatbot-layout">
@@ -147,10 +179,19 @@ export function ChatBotView() {
             <h3>MCP Tools</h3>
             <p className="chatbot-mcp-url">{MCP_SERVER_URL.replace("https://", "")}</p>
           </div>
-          <span className={`chatbot-mcp-status ${mcpOnline ? "online" : "offline"}`}>
-            {mcpOnline === null ? "…" : mcpOnline ? `${tools.length} tools` : "Offline"}
+          <span
+            className={`chatbot-mcp-status ${connecting ? "connecting" : mcpOnline ? "online" : "offline"}`}
+          >
+            {connecting ? "Connecting…" : mcpOnline ? `${tools.length} tools` : "Offline"}
           </span>
         </div>
+
+        {connecting && (
+          <div className="chatbot-panel-loader">
+            <span className="chatbot-spinner" aria-hidden />
+            <span>Loading MCP tools…</span>
+          </div>
+        )}
 
         <div className="chatbot-quick-tools">
           {QUICK_TOOLS.map((t) => (
@@ -158,7 +199,7 @@ export function ChatBotView() {
               key={t.name + (t.label ?? "")}
               type="button"
               className="chatbot-tool-chip"
-              disabled={busy}
+              disabled={busy || connecting || !mcpOnline}
               onClick={() => runTool(t.name, t.args ?? {}, t.label)}
             >
               {t.label}
@@ -172,7 +213,7 @@ export function ChatBotView() {
               <button
                 type="button"
                 className="chatbot-tool-item"
-                disabled={busy}
+                disabled={busy || connecting || !mcpOnline}
                 onClick={() => runTool(t.name, {}, t.name)}
                 title={t.description}
               >
@@ -205,6 +246,29 @@ export function ChatBotView() {
         </div>
 
         <div className="chatbot-messages" ref={scrollRef}>
+          {connecting && (
+            <div className="chatbot-connect-overlay">
+              <div className="chatbot-connect-card">
+                <span className="chatbot-spinner chatbot-spinner-lg" aria-hidden />
+                <h4>Connecting to MCP</h4>
+                <p>Establishing session with production Smriti server…</p>
+                <p className="chatbot-connect-url">{MCP_SERVER_URL.replace("https://", "")}</p>
+              </div>
+            </div>
+          )}
+
+          {!connecting && connectStatus === "error" && (
+            <div className="chatbot-connect-overlay chatbot-connect-overlay-error">
+              <div className="chatbot-connect-card">
+                <h4>Connection failed</h4>
+                <p>{connectError ?? "Unable to reach MCP server."}</p>
+                <button type="button" className="chatbot-retry-btn" onClick={retryConnect}>
+                  Retry connection
+                </button>
+              </div>
+            </div>
+          )}
+
           {messages.map((m) => (
             <div key={m.id} className={`chatbot-msg chatbot-msg-${m.role}`}>
               <div className="chatbot-msg-label">
@@ -213,7 +277,12 @@ export function ChatBotView() {
               <pre className="chatbot-msg-body">{m.content}</pre>
             </div>
           ))}
-          {busy && <div className="chatbot-msg chatbot-msg-assistant chatbot-typing">Thinking…</div>}
+          {busy && (
+            <div className="chatbot-msg chatbot-msg-assistant chatbot-typing">
+              <span className="chatbot-spinner chatbot-spinner-sm" aria-hidden />
+              Thinking…
+            </div>
+          )}
         </div>
 
         <form
@@ -227,11 +296,21 @@ export function ChatBotView() {
             className="chatbot-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about metrics, plugins, templates…"
-            disabled={busy}
+            placeholder={
+              connecting
+                ? "Connecting to MCP…"
+                : !mcpOnline
+                  ? "MCP offline"
+                  : "Ask about metrics, plugins, templates…"
+            }
+            disabled={busy || connecting || !mcpOnline}
           />
-          <button type="submit" className="chatbot-send" disabled={busy || !input.trim()}>
-            Send
+          <button
+            type="submit"
+            className="chatbot-send"
+            disabled={busy || connecting || !mcpOnline || !input.trim()}
+          >
+            {busy ? "…" : "Send"}
           </button>
         </form>
       </section>

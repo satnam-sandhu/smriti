@@ -66,8 +66,8 @@ function App() {
       subtitle: "Throughput, AI cost, and ingestion activity",
     },
     chatbot: {
-      title: "Chat Bot",
-      subtitle: "Ask questions and invoke Smriti MCP tools via NitroChat",
+      title: "Smriti AI",
+      subtitle: "Ask questions and invoke Smriti MCP tools",
     },
   }[tab];
 
@@ -119,7 +119,7 @@ function App() {
             onClick={() => setTab("chatbot")}
           >
             <ChatBotIcon />
-            Chat Bot
+            Smriti AI
           </button>
         </nav>
 
