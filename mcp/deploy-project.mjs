@@ -13,7 +13,7 @@ import https from 'node:https';
 import { execSync } from 'node:child_process';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mkdtempSync, cpSync, rmSync } from 'node:fs';
+import { mkdtempSync, cpSync, rmSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
 const MCP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)));
@@ -88,7 +88,7 @@ function uploadToS3(url, fileBuffer) {
 }
 
 function copyDeployTree(staging) {
-  const skip = new Set(['node_modules', '.git', '.env', 'data']);
+  const skip = new Set(['node_modules', 'dist', '.git', '.env', 'data']);
   for (const name of fs.readdirSync(MCP_ROOT)) {
     if (skip.has(name)) continue;
     cpSync(join(MCP_ROOT, name), join(staging, name), { recursive: true });
@@ -99,17 +99,14 @@ function copyDeployTree(staging) {
     cpSync(join(SMRITI_ROOT, 'samples'), join(staging, 'samples'), { recursive: true });
   }
 
-  // Pre-built artifacts (cloud may skip compile step)
-  for (const artifact of ['dist', join('src', 'widgets', 'out')]) {
-    const src = join(MCP_ROOT, artifact);
-    if (fs.existsSync(src)) {
-      cpSync(src, join(staging, artifact), { recursive: true });
-    }
-  }
-
   fs.mkdirSync(join(staging, 'data'), { recursive: true });
 
-  fs.writeFileSync(
+  // Cloud build: skip postinstall venv setup (native bridge handles metrics)
+  const pkg = JSON.parse(readFileSync(join(MCP_ROOT, 'package.json'), 'utf-8'));
+  delete pkg.scripts?.postinstall;
+  writeFileSync(join(staging, 'package.json'), JSON.stringify(pkg, null, 2) + '\n');
+
+  writeFileSync(
     join(staging, '.env.production'),
     [
       'NITRO_LOG_LEVEL=info',
@@ -139,7 +136,7 @@ async function main() {
 
     if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
     execSync(
-      `zip -r "${zipPath}" . -x "node_modules/*" -x "out/*" -x ".next/*" -x "src/widgets/node_modules/*" -x "src/widgets/.next/*" -x ".turbo/*" -x ".git/*" -x ".env" -x "parser/.venv/*" -x "**/__pycache__/*" -x "*.DS_Store" -x "deploy-project.mjs"`,
+      `zip -r "${zipPath}" . -x "node_modules/*" -x "dist/*" -x "out/*" -x ".next/*" -x "src/widgets/node_modules/*" -x "src/widgets/out/*" -x "src/widgets/.next/*" -x ".turbo/*" -x ".git/*" -x ".env" -x "parser/.venv/*" -x "**/__pycache__/*" -x "*.DS_Store" -x "deploy-project.mjs" -x "src/widgets/package-lock.json"`,
       { cwd: staging, stdio: 'inherit' },
     );
 
