@@ -1,19 +1,57 @@
-use crate::models::{AnalyticsQueryResult, FileDetail, FileRecord, PipelineMetrics};
+use crate::models::{
+    AnalyticsQueryResult, Collection, CollectionSummary, FileDetail, FileRecord, PipelineMetrics,
+};
 use crate::pipeline;
 
 #[tauri::command]
-pub async fn ingest_files(
+pub async fn create_collection(
     app: tauri::AppHandle,
-    paths: Vec<String>,
-) -> Result<Vec<String>, String> {
-    tauri::async_runtime::spawn_blocking(move || pipeline::ingest_files(&app, paths))
+    name: String,
+    doc_type: String,
+) -> Result<Collection, String> {
+    tauri::async_runtime::spawn_blocking(move || pipeline::create_collection(&app, name, doc_type))
         .await
         .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
-pub async fn process_batch(app: tauri::AppHandle) -> Result<Vec<FileRecord>, String> {
-    tauri::async_runtime::spawn_blocking(move || pipeline::process_batch(&app))
+pub async fn list_collections(app: tauri::AppHandle) -> Result<Vec<CollectionSummary>, String> {
+    tauri::async_runtime::spawn_blocking(move || pipeline::list_all_collections(&app))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn get_collection_table(
+    app: tauri::AppHandle,
+    collection_id: String,
+) -> Result<AnalyticsQueryResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        pipeline::get_collection_table(&app, collection_id)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn ingest_files(
+    app: tauri::AppHandle,
+    collection_id: String,
+    paths: Vec<String>,
+) -> Result<Vec<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        pipeline::ingest_files(&app, collection_id, paths)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn process_batch(
+    app: tauri::AppHandle,
+    file_ids: Option<Vec<String>>,
+) -> Result<Vec<FileRecord>, String> {
+    tauri::async_runtime::spawn_blocking(move || pipeline::process_batch(&app, file_ids))
         .await
         .map_err(|e| e.to_string())?
 }

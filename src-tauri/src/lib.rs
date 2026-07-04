@@ -16,6 +16,9 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::create_collection,
+            commands::list_collections,
+            commands::get_collection_table,
             commands::ingest_files,
             commands::process_batch,
             commands::get_metrics,

@@ -1,4 +1,4 @@
-use crate::models::{FileRecord, FileStatus, ParserPath, PipelineFailure, PipelineMetrics};
+use crate::models::{Collection, CollectionSummary, FileRecord, FileStatus, ParserPath, PipelineFailure, PipelineMetrics};
 use rusqlite::{params, Connection};
 use std::path::PathBuf;
 use std::sync::Mutex;
@@ -45,9 +45,17 @@ pub fn init_db(app: &tauri::AppHandle) -> Result<(), String> {
             error_detail TEXT,
             timestamp TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS collections (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            doc_type TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
         ",
     )
     .map_err(|e| e.to_string())?;
+
+    migrate_files_schema(&conn)?;
 
     app.manage(DbState {
         conn: Mutex::new(conn),
@@ -72,11 +80,13 @@ pub fn insert_file(
     created_at: &str,
 ) -> Result<(), String> {
     conn.execute(
-        "INSERT INTO files (id, file_name, status, parser_path, bronze_path, silver_path, bytes, error_code, error_detail, accuracy_pct, created_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+        "INSERT INTO files (id, collection_id, file_name, mime, status, parser_path, bronze_path, silver_path, bytes, error_code, error_detail, accuracy_pct, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         params![
             record.id,
+            record.collection_id,
             record.file_name,
+            record.mime,
             status_str(&record.status),
             record.parser_path.as_ref().map(parser_path_str),
             record.bronze_path,
@@ -111,24 +121,26 @@ pub fn update_file(conn: &Connection, record: &FileRecord) -> Result<(), String>
 
 pub fn list_files(conn: &Connection) -> Result<Vec<FileRecord>, String> {
     let mut stmt = conn
-        .prepare("SELECT id, file_name, status, parser_path, bronze_path, silver_path, bytes, error_code, error_detail, accuracy_pct FROM files ORDER BY created_at DESC")
+        .prepare("SELECT id, collection_id, file_name, mime, status, parser_path, bronze_path, silver_path, bytes, error_code, error_detail, accuracy_pct FROM files ORDER BY created_at DESC")
         .map_err(|e| e.to_string())?;
 
     let rows = stmt
         .query_map([], |row| {
             Ok(FileRecord {
                 id: row.get(0)?,
-                file_name: row.get(1)?,
-                status: parse_status(row.get::<_, String>(2)?),
+                collection_id: row.get(1)?,
+                file_name: row.get(2)?,
+                mime: row.get(3)?,
+                status: parse_status(row.get::<_, String>(4)?),
                 parser_path: row
-                    .get::<_, Option<String>>(3)?
+                    .get::<_, Option<String>>(5)?
                     .map(|s| parse_parser_path(s)),
-                bronze_path: row.get(4)?,
-                silver_path: row.get(5)?,
-                bytes: row.get::<_, i64>(6)? as u64,
-                error_code: row.get(7)?,
-                error_detail: row.get(8)?,
-                accuracy_pct: row.get(9)?,
+                bronze_path: row.get(6)?,
+                silver_path: row.get(7)?,
+                bytes: row.get::<_, i64>(8)? as u64,
+                error_code: row.get(9)?,
+                error_detail: row.get(10)?,
+                accuracy_pct: row.get(11)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -138,7 +150,7 @@ pub fn list_files(conn: &Connection) -> Result<Vec<FileRecord>, String> {
 
 pub fn get_file(conn: &Connection, file_id: &str) -> Result<Option<FileRecord>, String> {
     let mut stmt = conn
-        .prepare("SELECT id, file_name, status, parser_path, bronze_path, silver_path, bytes, error_code, error_detail, accuracy_pct FROM files WHERE id = ?1")
+        .prepare("SELECT id, collection_id, file_name, mime, status, parser_path, bronze_path, silver_path, bytes, error_code, error_detail, accuracy_pct FROM files WHERE id = ?1")
         .map_err(|e| e.to_string())?;
 
     let mut rows = stmt
@@ -148,18 +160,20 @@ pub fn get_file(conn: &Connection, file_id: &str) -> Result<Option<FileRecord>, 
     if let Some(row) = rows.next().map_err(|e| e.to_string())? {
         Ok(Some(FileRecord {
             id: row.get(0).map_err(|e| e.to_string())?,
-            file_name: row.get(1).map_err(|e| e.to_string())?,
-            status: parse_status(row.get(2).map_err(|e| e.to_string())?),
+            collection_id: row.get(1).map_err(|e| e.to_string())?,
+            file_name: row.get(2).map_err(|e| e.to_string())?,
+            mime: row.get(3).map_err(|e| e.to_string())?,
+            status: parse_status(row.get(4).map_err(|e| e.to_string())?),
             parser_path: row
-                .get::<_, Option<String>>(3)
+                .get::<_, Option<String>>(5)
                 .map_err(|e| e.to_string())?
                 .map(parse_parser_path),
-            bronze_path: row.get(4).map_err(|e| e.to_string())?,
-            silver_path: row.get(5).map_err(|e| e.to_string())?,
-            bytes: row.get::<_, i64>(6).map_err(|e| e.to_string())? as u64,
-            error_code: row.get(7).map_err(|e| e.to_string())?,
-            error_detail: row.get(8).map_err(|e| e.to_string())?,
-            accuracy_pct: row.get(9).map_err(|e| e.to_string())?,
+            bronze_path: row.get(6).map_err(|e| e.to_string())?,
+            silver_path: row.get(7).map_err(|e| e.to_string())?,
+            bytes: row.get::<_, i64>(8).map_err(|e| e.to_string())? as u64,
+            error_code: row.get(9).map_err(|e| e.to_string())?,
+            error_detail: row.get(10).map_err(|e| e.to_string())?,
+            accuracy_pct: row.get(11).map_err(|e| e.to_string())?,
         }))
     } else {
         Ok(None)
@@ -266,6 +280,134 @@ pub fn get_metrics(conn: &Connection) -> Result<PipelineMetrics, String> {
         deterministic_parsed,
         recent_failures,
     })
+}
+
+fn migrate_files_schema(conn: &Connection) -> Result<(), String> {
+    let has_mime: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('files') WHERE name = 'mime'",
+            [],
+            |r| r.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    if has_mime == 0 {
+        conn.execute("ALTER TABLE files ADD COLUMN mime TEXT", [])
+            .map_err(|e| e.to_string())?;
+    }
+
+    let has_collection: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('files') WHERE name = 'collection_id'",
+            [],
+            |r| r.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    if has_collection == 0 {
+        conn.execute("ALTER TABLE files ADD COLUMN collection_id TEXT", [])
+            .map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
+}
+
+pub fn insert_collection(conn: &Connection, collection: &Collection) -> Result<(), String> {
+    conn.execute(
+        "INSERT INTO collections (id, name, doc_type, created_at) VALUES (?1, ?2, ?3, ?4)",
+        params![
+            collection.id,
+            collection.name,
+            collection.doc_type,
+            collection.created_at,
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn get_collection(conn: &Connection, id: &str) -> Result<Option<Collection>, String> {
+    let mut stmt = conn
+        .prepare("SELECT id, name, doc_type, created_at FROM collections WHERE id = ?1")
+        .map_err(|e| e.to_string())?;
+
+    let mut rows = stmt.query(params![id]).map_err(|e| e.to_string())?;
+
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        Ok(Some(Collection {
+            id: row.get(0).map_err(|e| e.to_string())?,
+            name: row.get(1).map_err(|e| e.to_string())?,
+            doc_type: row.get(2).map_err(|e| e.to_string())?,
+            created_at: row.get(3).map_err(|e| e.to_string())?,
+        }))
+    } else {
+        Ok(None)
+    }
+}
+
+pub fn list_collections(conn: &Connection) -> Result<Vec<CollectionSummary>, String> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT c.id, c.name, c.doc_type, c.created_at,
+                    COUNT(f.id) as total,
+                    SUM(CASE WHEN f.status = 'completed' THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN f.status = 'failed' THEN 1 ELSE 0 END) as failed,
+                    SUM(CASE WHEN f.status IN ('queued', 'processing') THEN 1 ELSE 0 END) as in_progress
+             FROM collections c
+             LEFT JOIN files f ON f.collection_id = c.id
+             GROUP BY c.id
+             ORDER BY c.created_at DESC",
+        )
+        .map_err(|e| e.to_string())?;
+
+    let rows = stmt
+        .query_map([], |row| {
+            Ok(CollectionSummary {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                doc_type: row.get(2)?,
+                created_at: row.get(3)?,
+                total_files: row.get::<_, i64>(4)? as u32,
+                completed: row.get::<_, i64>(5)? as u32,
+                failed: row.get::<_, i64>(6)? as u32,
+                in_progress: row.get::<_, i64>(7)? as u32,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+pub fn list_files_for_collection(
+    conn: &Connection,
+    collection_id: &str,
+) -> Result<Vec<FileRecord>, String> {
+    let mut stmt = conn
+        .prepare("SELECT id, collection_id, file_name, mime, status, parser_path, bronze_path, silver_path, bytes, error_code, error_detail, accuracy_pct FROM files WHERE collection_id = ?1 ORDER BY created_at DESC")
+        .map_err(|e| e.to_string())?;
+
+    let rows = stmt
+        .query_map(params![collection_id], |row| {
+            Ok(FileRecord {
+                id: row.get(0)?,
+                collection_id: row.get(1)?,
+                file_name: row.get(2)?,
+                mime: row.get(3)?,
+                status: parse_status(row.get::<_, String>(4)?),
+                parser_path: row
+                    .get::<_, Option<String>>(5)?
+                    .map(|s| parse_parser_path(s)),
+                bronze_path: row.get(6)?,
+                silver_path: row.get(7)?,
+                bytes: row.get::<_, i64>(8)? as u64,
+                error_code: row.get(9)?,
+                error_detail: row.get(10)?,
+                accuracy_pct: row.get(11)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
 fn status_str(status: &FileStatus) -> &'static str {

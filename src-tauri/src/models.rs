@@ -41,9 +41,33 @@ pub struct PipelineMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Collection {
+    pub id: String,
+    pub name: String,
+    pub doc_type: String,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionSummary {
+    pub id: String,
+    pub name: String,
+    pub doc_type: String,
+    pub created_at: String,
+    pub total_files: u32,
+    pub completed: u32,
+    pub failed: u32,
+    pub in_progress: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FileRecord {
     pub id: String,
+    pub collection_id: Option<String>,
     pub file_name: String,
+    pub mime: Option<String>,
     pub status: FileStatus,
     pub parser_path: Option<ParserPath>,
     pub bronze_path: String,

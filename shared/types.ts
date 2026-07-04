@@ -41,9 +41,31 @@ export interface PipelineMetrics {
   recentFailures: PipelineFailure[];
 }
 
+export type DocType = "report" | "ledger" | "statement";
+
+export interface Collection {
+  id: string;
+  name: string;
+  docType: DocType;
+  createdAt: string;
+}
+
+export interface CollectionSummary {
+  id: string;
+  name: string;
+  docType: DocType;
+  createdAt: string;
+  totalFiles: number;
+  completed: number;
+  failed: number;
+  inProgress: number;
+}
+
 export interface FileRecord {
   id: string;
+  collectionId?: string;
   fileName: string;
+  mime?: string;
   status: FileStatus;
   parserPath?: ParserPath;
   bronzePath: string;

@@ -13,10 +13,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--meta", default="{}", help="JSON metadata merged into row")
     args = parser.parse_args()
 
     data = json.loads(args.input.read_text())
-    table = pa.Table.from_pylist([data])
+    meta = json.loads(args.meta)
+    row = {**data, **meta}
+    table = pa.Table.from_pylist([row])
     args.output.parent.mkdir(parents=True, exist_ok=True)
     pq.write_table(table, args.output, compression="snappy")
 

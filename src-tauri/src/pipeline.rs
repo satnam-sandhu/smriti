@@ -1,6 +1,13 @@
-use crate::db::{get_file, get_metrics as db_metrics, init_db, insert_failure, insert_file, list_files, update_file, with_db};
+use crate::db::{
+    get_collection, get_file, get_metrics as db_metrics, init_db, insert_collection,
+    insert_failure, insert_file, list_collections as db_list_collections,
+    list_files, list_files_for_collection, update_file, with_db,
+};
 use crate::emit_metrics;
-use crate::models::{FileDetail, FileRecord, FileStatus, ParserOutput, PipelineMetrics};
+use crate::models::{
+    AnalyticsQueryResult, Collection, CollectionSummary, FileDetail, FileRecord, FileStatus,
+    ParserOutput, PipelineMetrics,
+};
 use chrono::Utc;
 use sha2::{Digest, Sha256};
 use std::fs;
@@ -13,11 +20,66 @@ pub fn init_workspace(app: &AppHandle) -> Result<(), String> {
     init_db(app)
 }
 
-pub fn ingest_files(app: &AppHandle, paths: Vec<String>) -> Result<Vec<String>, String> {
+pub fn create_collection(
+    app: &AppHandle,
+    name: String,
+    doc_type: String,
+) -> Result<Collection, String> {
+    let id = Uuid::new_v4().to_string();
+    let now = Utc::now().to_rfc3339();
+    let collection = Collection {
+        id: id.clone(),
+        name: name.trim().to_string(),
+        doc_type,
+        created_at: now,
+    };
+
+    with_db(app, |conn, workspace| {
+        insert_collection(conn, &collection)?;
+        let gold_dir = collection_gold_dir(workspace, &id);
+        fs::create_dir_all(&gold_dir).map_err(|e| e.to_string())?;
+        Ok(())
+    })?;
+
+    let _ = app.emit("collections:updated", ());
+    Ok(collection)
+}
+
+pub fn list_all_collections(app: &AppHandle) -> Result<Vec<CollectionSummary>, String> {
+    with_db(app, |conn, _| db_list_collections(conn))
+}
+
+pub fn get_collection_table(
+    app: &AppHandle,
+    collection_id: String,
+) -> Result<AnalyticsQueryResult, String> {
+    let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
+    let gold_dir = collection_gold_dir(&workspace, &collection_id);
+
+    if !gold_glob_has_files(&gold_dir) {
+        return build_table_from_silver(app, &collection_id);
+    }
+
+    let gold_glob = collection_gold_glob(&workspace, &collection_id);
+    let sql = format!("SELECT * FROM read_parquet('{gold_glob}')");
+    run_duckdb_query(app, &sql, &gold_glob)
+}
+
+pub fn ingest_files(
+    app: &AppHandle,
+    collection_id: String,
+    paths: Vec<String>,
+) -> Result<Vec<String>, String> {
+    with_db(app, |conn, _| {
+        get_collection(conn, &collection_id)?.ok_or_else(|| "Collection not found".to_string())?;
+        Ok(())
+    })?;
+
     let now = Utc::now().to_rfc3339();
 
-    let ids = with_db(app, |conn, workspace| {
+    let (ids, queued_records) = with_db(app, |conn, workspace| {
         let mut ids = Vec::new();
+        let mut queued_records = Vec::new();
         for path in paths {
             let src = PathBuf::from(&path);
             if !src.exists() {
@@ -37,7 +99,9 @@ pub fn ingest_files(app: &AppHandle, paths: Vec<String>) -> Result<Vec<String>, 
 
             let record = FileRecord {
                 id: id.clone(),
+                collection_id: Some(collection_id.clone()),
                 file_name: file_name.clone(),
+                mime: Some(guess_mime(&file_name)),
                 status: FileStatus::Queued,
                 parser_path: None,
                 bronze_path: bronze_path.to_string_lossy().to_string(),
@@ -49,22 +113,37 @@ pub fn ingest_files(app: &AppHandle, paths: Vec<String>) -> Result<Vec<String>, 
             };
 
             insert_file(conn, &record, &now)?;
-            ids.push(id);
+            ids.push(id.clone());
+            queued_records.push(record);
         }
-        Ok(ids)
+        Ok((ids, queued_records))
     })?;
 
+    for record in queued_records {
+        let _ = app.emit("file:queued", &record);
+    }
+
     emit_metrics(app);
+    let _ = app.emit("collections:updated", ());
     Ok(ids)
 }
 
-pub fn process_batch(app: &AppHandle) -> Result<Vec<FileRecord>, String> {
+pub fn process_batch(
+    app: &AppHandle,
+    file_ids: Option<Vec<String>>,
+) -> Result<Vec<FileRecord>, String> {
     let files = with_db(app, |conn, _| list_files(conn))?;
     let mut results = Vec::new();
+    let id_filter = file_ids.map(|ids| ids.into_iter().collect::<std::collections::HashSet<_>>());
 
     for mut record in files {
         if record.status != FileStatus::Queued {
             continue;
+        }
+        if let Some(ref allowed) = id_filter {
+            if !allowed.contains(&record.id) {
+                continue;
+            }
         }
 
         record.status = FileStatus::Processing;
@@ -94,6 +173,7 @@ pub fn process_batch(app: &AppHandle) -> Result<Vec<FileRecord>, String> {
         with_db(app, |conn, _| update_file(conn, &record))?;
         results.push(record);
         emit_metrics(app);
+        let _ = app.emit("collections:updated", ());
     }
 
     Ok(results)
@@ -114,7 +194,17 @@ fn process_single_file(app: &AppHandle, record: &mut FileRecord) -> Result<FileR
         });
     }
 
-    let parser_output = call_python_parser(app, &bronze, &record.file_name)?;
+    let doc_type = record
+        .collection_id
+        .as_ref()
+        .and_then(|cid| {
+            with_db(app, |conn, _| get_collection(conn, cid))
+                .ok()
+                .flatten()
+                .map(|c| c.doc_type)
+        });
+
+    let parser_output = call_python_parser(app, &bronze, &record.file_name, doc_type.as_deref())?;
 
     if let Some(code) = &parser_output.error_code {
         return Err(ProcessError {
@@ -146,7 +236,7 @@ fn process_single_file(app: &AppHandle, record: &mut FileRecord) -> Result<FileR
         detail: e.to_string(),
     })?;
 
-    write_gold_parquet(app, record, &parser_output.silver_json)?;
+    write_gold_parquet(app, record, &parser_output.silver_json, &parser_output.parser_path)?;
 
     record.status = FileStatus::Completed;
     record.parser_path = Some(parser_output.parser_path);
@@ -158,7 +248,12 @@ fn process_single_file(app: &AppHandle, record: &mut FileRecord) -> Result<FileR
     Ok(record.clone())
 }
 
-fn call_python_parser(app: &AppHandle, bronze: &Path, file_name: &str) -> Result<ParserOutput, ProcessError> {
+fn call_python_parser(
+    app: &AppHandle,
+    bronze: &Path,
+    file_name: &str,
+    doc_type: Option<&str>,
+) -> Result<ParserOutput, ProcessError> {
     let project_root = resolve_project_root(app);
     let parser_script = project_root.join("parser").join("cli.py");
     let venv_python = project_root.join("parser").join(".venv").join("bin").join("python3");
@@ -173,14 +268,18 @@ fn call_python_parser(app: &AppHandle, bronze: &Path, file_name: &str) -> Result
         .join("expected")
         .join(format!("{}.json", Path::new(file_name).file_stem().unwrap_or_default().to_string_lossy()));
 
-    let output = Command::new(python)
-        .arg(&parser_script)
+    let mut cmd = Command::new(python);
+    cmd.arg(&parser_script)
         .arg("--file")
         .arg(bronze)
         .arg("--expected")
-        .arg(if expected.exists() { expected } else { PathBuf::from("") })
-        .output()
-        .map_err(|e| ProcessError {
+        .arg(if expected.exists() { expected } else { PathBuf::from("") });
+
+    if let Some(dt) = doc_type {
+        cmd.arg("--doc-type").arg(dt);
+    }
+
+    let output = cmd.output().map_err(|e| ProcessError {
             code: "UNKNOWN_LAYOUT".into(),
             detail: format!("Failed to run parser: {e}"),
         })?;
@@ -203,6 +302,7 @@ fn write_gold_parquet(
     app: &AppHandle,
     record: &FileRecord,
     silver_json: &serde_json::Value,
+    parser_path: &crate::models::ParserPath,
 ) -> Result<(), ProcessError> {
     let project_root = resolve_project_root(app);
     let script = project_root.join("parser").join("write_parquet.py");
@@ -218,7 +318,12 @@ fn write_gold_parquet(
         detail: e,
     })?;
 
-    let gold_dir = workspace.join("gold/domain=finance/year=2026/month=07");
+    let collection_id = record.collection_id.as_ref().ok_or_else(|| ProcessError {
+        code: "VALIDATION_ERROR".into(),
+        detail: "File missing collection_id".into(),
+    })?;
+
+    let gold_dir = collection_gold_dir(&workspace, collection_id);
     fs::create_dir_all(&gold_dir).map_err(|e| ProcessError {
         code: "VALIDATION_ERROR".into(),
         detail: e.to_string(),
@@ -231,12 +336,24 @@ fn write_gold_parquet(
         detail: e.to_string(),
     })?;
 
+    let meta = serde_json::json!({
+        "_file_id": record.id,
+        "_file_name": record.file_name,
+        "_parser_path": match parser_path {
+            crate::models::ParserPath::Ai => "ai",
+            crate::models::ParserPath::Deterministic => "deterministic",
+        },
+        "_status": "completed",
+    });
+
     let output = Command::new(python)
         .arg(&script)
         .arg("--input")
         .arg(&silver_tmp)
         .arg("--output")
         .arg(&gold_file)
+        .arg("--meta")
+        .arg(meta.to_string())
         .output()
         .map_err(|e| ProcessError {
             code: "VALIDATION_ERROR".into(),
@@ -251,6 +368,8 @@ fn write_gold_parquet(
             detail: String::from_utf8_lossy(&output.stderr).to_string(),
         });
     }
+
+    let _ = register_collection_duckdb(app, collection_id);
 
     Ok(())
 }
@@ -337,7 +456,20 @@ pub fn list_all_files(app: &AppHandle) -> Result<Vec<FileRecord>, String> {
     with_db(app, |conn, _| list_files(conn))
 }
 
-pub fn run_analytics_query(app: &AppHandle, sql: String) -> Result<crate::models::AnalyticsQueryResult, String> {
+pub fn run_analytics_query(app: &AppHandle, sql: String) -> Result<AnalyticsQueryResult, String> {
+    let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
+    let gold_glob = workspace
+        .join("gold/collections/*/*.parquet")
+        .to_string_lossy()
+        .to_string();
+    run_duckdb_query(app, &sql, &gold_glob)
+}
+
+fn run_duckdb_query(
+    app: &AppHandle,
+    sql: &str,
+    gold_glob: &str,
+) -> Result<AnalyticsQueryResult, String> {
     let project_root = resolve_project_root(app);
     let script = project_root.join("parser").join("analytics.py");
     let venv_python = project_root.join("parser").join(".venv").join("bin").join("python3");
@@ -348,17 +480,16 @@ pub fn run_analytics_query(app: &AppHandle, sql: String) -> Result<crate::models
     };
 
     let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
-    let gold_glob = workspace
-        .join("gold/domain=finance/year=2026/month=07/*.parquet")
-        .to_string_lossy()
-        .to_string();
+    let db_path = workspace.join("analytics.duckdb");
 
     let output = Command::new(python)
         .arg(&script)
         .arg("--sql")
-        .arg(&sql)
+        .arg(sql)
         .arg("--gold-glob")
-        .arg(&gold_glob)
+        .arg(gold_glob)
+        .arg("--db-path")
+        .arg(&db_path)
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -367,6 +498,120 @@ pub fn run_analytics_query(app: &AppHandle, sql: String) -> Result<crate::models
     }
 
     serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())
+}
+
+fn build_table_from_silver(
+    app: &AppHandle,
+    collection_id: &str,
+) -> Result<AnalyticsQueryResult, String> {
+    let files = with_db(app, |conn, _| list_files_for_collection(conn, collection_id))?;
+    let mut rows: Vec<serde_json::Value> = Vec::new();
+    let mut columns: Vec<String> = Vec::new();
+
+    for file in files {
+        if file.status != FileStatus::Completed {
+            continue;
+        }
+        let Some(silver_path) = file.silver_path else {
+            continue;
+        };
+        let silver: serde_json::Value = fs::read_to_string(&silver_path)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or(serde_json::json!({}));
+
+        let mut row = match silver {
+            serde_json::Value::Object(map) => serde_json::Value::Object(map),
+            other => serde_json::json!({ "value": other }),
+        };
+
+        if let serde_json::Value::Object(ref mut map) = row {
+            map.insert("_file_id".into(), serde_json::json!(file.id));
+            map.insert("_file_name".into(), serde_json::json!(file.file_name));
+            map.insert(
+                "_parser_path".into(),
+                serde_json::json!(file.parser_path.as_ref().map(|p| match p {
+                    crate::models::ParserPath::Ai => "ai",
+                    crate::models::ParserPath::Deterministic => "deterministic",
+                }).unwrap_or("")),
+            );
+            map.insert("_status".into(), serde_json::json!("completed"));
+
+            for key in map.keys() {
+                if !columns.contains(key) {
+                    columns.push(key.clone());
+                }
+            }
+        }
+        rows.push(row);
+    }
+
+    columns.sort();
+
+    Ok(AnalyticsQueryResult { columns, rows })
+}
+
+fn collection_gold_dir(workspace: &PathBuf, collection_id: &str) -> PathBuf {
+    workspace
+        .join("gold")
+        .join("collections")
+        .join(collection_id)
+}
+
+fn collection_gold_glob(workspace: &PathBuf, collection_id: &str) -> String {
+    collection_gold_dir(workspace, collection_id)
+        .join("*.parquet")
+        .to_string_lossy()
+        .to_string()
+}
+
+fn gold_glob_has_files(gold_dir: &Path) -> bool {
+    fs::read_dir(gold_dir)
+        .ok()
+        .map(|entries| {
+            entries.filter_map(|e| e.ok()).any(|e| {
+                e.path()
+                    .extension()
+                    .and_then(|ext| ext.to_str())
+                    .map(|ext| ext.eq_ignore_ascii_case("parquet"))
+                    .unwrap_or(false)
+            })
+        })
+        .unwrap_or(false)
+}
+
+fn register_collection_duckdb(app: &AppHandle, collection_id: &str) -> Result<(), String> {
+    let project_root = resolve_project_root(app);
+    let script = project_root.join("parser").join("analytics.py");
+    let venv_python = project_root.join("parser").join(".venv").join("bin").join("python3");
+    let python = if venv_python.exists() {
+        venv_python
+    } else {
+        PathBuf::from("python3")
+    };
+
+    let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
+    let gold_glob = collection_gold_glob(&workspace, collection_id);
+    let db_path = workspace.join("analytics.duckdb");
+    let view_name = format!("collection_{}", collection_id.replace('-', "_"));
+
+    let output = Command::new(python)
+        .arg(&script)
+        .arg("--register")
+        .arg("--gold-glob")
+        .arg(&gold_glob)
+        .arg("--db-path")
+        .arg(&db_path)
+        .arg("--view-name")
+        .arg(&view_name)
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if !output.status.success() {
+        return Err(String::from_utf8_lossy(&output.stderr).to_string());
+    }
+
+    Ok(())
 }
 
 fn resolve_project_root(app: &AppHandle) -> PathBuf {
@@ -384,6 +629,24 @@ fn resolve_project_root(app: &AppHandle) -> PathBuf {
     }
 
     std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
+}
+
+fn guess_mime(file_name: &str) -> String {
+    match Path::new(file_name)
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.to_ascii_lowercase())
+        .as_deref()
+    {
+        Some("pdf") => "application/pdf",
+        Some("xlsx") => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        Some("xls") => "application/vnd.ms-excel",
+        Some("png") => "image/png",
+        Some("jpg") | Some("jpeg") => "image/jpeg",
+        Some("json") => "application/json",
+        _ => "application/octet-stream",
+    }
+    .to_string()
 }
 
 fn _hash_file(path: &Path) -> Result<String, String> {
