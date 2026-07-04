@@ -1,5 +1,6 @@
 mod commands;
 mod db;
+mod mcp;
 mod models;
 mod pipeline;
 
@@ -16,12 +17,21 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::list_failed_reviews,
+            commands::get_failed_review,
+            commands::mark_failed_review,
+            commands::create_collection,
+            commands::list_collections,
+            commands::get_collection_table,
             commands::ingest_files,
             commands::process_batch,
             commands::get_metrics,
+            commands::get_pipeline_stats,
             commands::get_file_detail,
             commands::list_files,
             commands::run_analytics_query,
+            commands::mcp_list_tools,
+            commands::mcp_call_tool,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

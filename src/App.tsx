@@ -1,263 +1,171 @@
 import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { open } from "@tauri-apps/plugin-dialog";
-import type {
-  FileDetail,
-  FileRecord,
-  PipelineFailure,
-  PipelineMetrics,
-} from "../shared/types";
+import type { PipelineMetrics } from "../shared/types";
+import { ChatBotView } from "./components/ChatBotView";
+import { CollectionsView } from "./components/CollectionsView";
+import { PipelineView } from "./components/PipelineView";
+import { ReviewView } from "./components/ReviewView";
+import { CollectionsIcon, ReviewIcon } from "./components/icons";
+import { SmritiLogo } from "./components/SmritiLogo";
+import { formatBytes } from "./utils/format";
 import "./App.css";
 
-const DEFAULT_SQL =
-  "SELECT * FROM read_parquet('GOLD_GLOB') LIMIT 5";
+type Tab = "collections" | "review" | "pipeline" | "chatbot";
 
-type Tab = "pipeline" | "extraction";
-
-function App() {
-  const [tab, setTab] = useState<Tab>("pipeline");
-  const [metrics, setMetrics] = useState<PipelineMetrics | null>(null);
-  const [files, setFiles] = useState<FileRecord[]>([]);
-  const [selectedFileId, setSelectedFileId] = useState<string>("");
-  const [fileDetail, setFileDetail] = useState<FileDetail | null>(null);
-  const [sql, setSql] = useState(DEFAULT_SQL);
-  const [sqlResult, setSqlResult] = useState<string>("");
-  const [busy, setBusy] = useState(false);
-
-  const refresh = useCallback(async () => {
-    const [m, f] = await Promise.all([
-      invoke<PipelineMetrics>("get_metrics"),
-      invoke<FileRecord[]>("list_files"),
-    ]);
-    setMetrics(m);
-    setFiles(f);
-  }, []);
-
-  useEffect(() => {
-    refresh();
-    const unsubs = [
-      listen("metrics:update", () => refresh()),
-      listen("file:completed", () => refresh()),
-      listen("file:failed", () => refresh()),
-    ];
-    const interval = setInterval(refresh, 2000);
-    return () => {
-      unsubs.forEach((p) => p.then((u) => u()));
-      clearInterval(interval);
-    };
-  }, [refresh]);
-
-  useEffect(() => {
-    if (!selectedFileId) return;
-    invoke<FileDetail | null>("get_file_detail", { fileId: selectedFileId }).then(
-      setFileDetail,
-    );
-  }, [selectedFileId, files]);
-
-  async function handlePickFiles() {
-    const selected = await open({
-      multiple: true,
-      directory: false,
-    });
-    if (!selected) return;
-    const paths = Array.isArray(selected) ? selected : [selected];
-    await handleIngest(paths);
-  }
-
-  async function handleIngest(paths: string[]) {
-    setBusy(true);
-    try {
-      await invoke("ingest_files", { paths });
-      await invoke("process_batch");
-      await refresh();
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleRunSql() {
-    const result = await invoke<{ columns: string[]; rows: Record<string, unknown>[] }>(
-      "run_analytics_query",
-      { sql },
-    );
-    setSqlResult(JSON.stringify(result, null, 2));
-  }
-
+function PipelineIcon() {
   return (
-    <div className="app">
-      <header className="header">
-        <h1>Smriti</h1>
-        <p>Finance Document Ingestion — Bronze → Silver → Gold</p>
-      </header>
-
-      <div className="tabs">
-        <button
-          className={`tab ${tab === "pipeline" ? "active" : ""}`}
-          onClick={() => setTab("pipeline")}
-        >
-          Pipeline
-        </button>
-        <button
-          className={`tab ${tab === "extraction" ? "active" : ""}`}
-          onClick={() => setTab("extraction")}
-        >
-          Extraction
-        </button>
-      </div>
-
-      {tab === "pipeline" && (
-        <>
-          <div className="dropzone" onClick={handlePickFiles}>
-            {busy ? "Processing..." : "Click to select files or drag & drop"}
-          </div>
-
-          <div className="metrics-grid">
-            <MetricCard label="Files Ingested" value={metrics?.totalFiles ?? 0} />
-            <MetricCard
-              label="Completed"
-              value={metrics?.completed ?? 0}
-              className="good"
-            />
-            <MetricCard label="Failed" value={metrics?.failed ?? 0} className="bad" />
-            <MetricCard
-              label="Accuracy"
-              value={`${(metrics?.accuracyPct ?? 0).toFixed(1)}%`}
-            />
-            <MetricCard
-              label="Validation Pass"
-              value={`${(metrics?.validationPassRate ?? 0).toFixed(1)}%`}
-            />
-            <MetricCard
-              label="AI / Deterministic"
-              value={`${metrics?.aiParsed ?? 0} / ${metrics?.deterministicParsed ?? 0}`}
-            />
-          </div>
-
-          <div className="file-list">
-            <h3>Files</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Parser</th>
-                  <th>Accuracy</th>
-                </tr>
-              </thead>
-              <tbody>
-                {files.map((f) => (
-                  <tr key={f.id ?? f.fileName}>
-                    <td>{f.fileName}</td>
-                    <td>
-                      <span className={`badge ${f.status}`}>{f.status}</span>
-                    </td>
-                    <td>
-                      {f.parserPath && (
-                        <span className={`badge ${f.parserPath}`}>
-                          {f.parserPath === "deterministic" ? "Deterministic ⚡" : "AI Learned"}
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      {f.accuracyPct != null ? `${f.accuracyPct.toFixed(1)}%` : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {(metrics?.recentFailures?.length ?? 0) > 0 && (
-            <div className="failures-table" style={{ marginTop: "1.5rem" }}>
-              <h3>Recent Failures</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>File</th>
-                    <th>Error</th>
-                    <th>Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {metrics!.recentFailures.map((f: PipelineFailure, i: number) => (
-                    <tr key={i}>
-                      <td>{f.fileName}</td>
-                      <td>{f.errorCode}</td>
-                      <td>{f.timestamp}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
-      )}
-
-      {tab === "extraction" && (
-        <>
-          <div style={{ marginBottom: "1rem" }}>
-            <select
-              value={selectedFileId}
-              onChange={(e) => setSelectedFileId(e.target.value)}
-              style={{ padding: "0.5rem", minWidth: "300px" }}
-            >
-              <option value="">Select a file...</option>
-              {files
-                .filter((f) => f.status === "completed")
-                .map((f) => (
-                  <option key={f.id ?? f.fileName} value={f.id}>
-                    {f.fileName}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          <div className="extraction-grid">
-            <div className="panel">
-              <h3>Source</h3>
-              <p>{fileDetail?.fileName ?? "—"}</p>
-              <p style={{ fontSize: "0.75rem", color: "#64748b" }}>
-                {fileDetail?.bronzePath}
-              </p>
-            </div>
-            <div className="panel">
-              <h3>Silver JSON</h3>
-              <pre>{JSON.stringify(fileDetail?.silverJson ?? {}, null, 2)}</pre>
-            </div>
-            <div className="panel">
-              <h3>Gold Row</h3>
-              <pre>{JSON.stringify(fileDetail?.goldRow ?? {}, null, 2)}</pre>
-            </div>
-          </div>
-
-          <div className="sql-panel">
-            <h3>Analytics (DuckDB)</h3>
-            <textarea value={sql} onChange={(e) => setSql(e.target.value)} />
-            <button className="primary" onClick={handleRunSql}>
-              Run Query
-            </button>
-            {sqlResult && <pre style={{ marginTop: "1rem" }}>{sqlResult}</pre>}
-          </div>
-        </>
-      )}
-    </div>
+    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />
+    </svg>
   );
 }
 
-function MetricCard({
-  label,
-  value,
-  className = "",
-}: {
-  label: string;
-  value: string | number;
-  className?: string;
-}) {
+function ChatBotIcon() {
   return (
-    <div className="metric-card">
-      <div className="label">{label}</div>
-      <div className={`value ${className}`}>{value}</div>
+    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function App() {
+  const [tab, setTab] = useState<Tab>("collections");
+  const [metrics, setMetrics] = useState<PipelineMetrics | null>(null);
+
+  const refreshMetrics = useCallback(async () => {
+    const m = await invoke<PipelineMetrics>("get_metrics");
+    setMetrics(m);
+  }, []);
+
+  useEffect(() => {
+    refreshMetrics();
+    const unsubs = [
+      listen("metrics:update", () => refreshMetrics()),
+      listen("file:completed", () => refreshMetrics()),
+      listen("file:failed", () => refreshMetrics()),
+    ];
+    return () => {
+      unsubs.forEach((p) => p.then((u) => u()));
+    };
+  }, [refreshMetrics]);
+
+  const pendingReviewCount = metrics?.unreviewedFailed ?? metrics?.failed ?? 0;
+
+  const topbar = {
+    collections: {
+      title: "Collections",
+      subtitle: "Organize documents and view extracted data",
+    },
+    review: {
+      title: "Failure Review",
+      subtitle: "Inspect quarantined documents and error details",
+    },
+    pipeline: {
+      title: "Pipeline",
+      subtitle: "Throughput, AI cost, and ingestion activity",
+    },
+    chatbot: {
+      title: "Smriti AI",
+      subtitle: "Ask questions and invoke Smriti MCP tools",
+    },
+  }[tab];
+
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand" data-tauri-drag-region>
+          <div className="brand-mark">
+            <SmritiLogo size={44} />
+            <div>
+              <h1>Smriti</h1>
+              <p className="brand-devanagari">स्मृति</p>
+              <p className="brand-tagline">Document Intelligence</p>
+            </div>
+          </div>
+        </div>
+
+        <nav className="sidebar-nav" data-tauri-drag-region={false}>
+          <button
+            type="button"
+            className={`nav-item ${tab === "collections" ? "active" : ""}`}
+            onClick={() => setTab("collections")}
+          >
+            <CollectionsIcon />
+            Collections
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${tab === "review" ? "active" : ""}`}
+            onClick={() => setTab("review")}
+          >
+            <ReviewIcon />
+            Review
+            {pendingReviewCount > 0 && (
+              <span className="nav-badge">{pendingReviewCount}</span>
+            )}
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${tab === "pipeline" ? "active" : ""}`}
+            onClick={() => setTab("pipeline")}
+          >
+            <PipelineIcon />
+            Pipeline
+          </button>
+          <button
+            type="button"
+            className={`nav-item ${tab === "chatbot" ? "active" : ""}`}
+            onClick={() => setTab("chatbot")}
+          >
+            <ChatBotIcon />
+            Smriti AI
+          </button>
+        </nav>
+
+        <div className="sidebar-footer" data-tauri-drag-region={false}>
+          <div className="live-indicator">
+            <span className="live-dot" />
+            Pipeline connected
+          </div>
+        </div>
+      </aside>
+
+      <div className="main">
+        <header className="topbar" data-tauri-drag-region>
+          <div className="topbar-drag">
+            <h2 className="topbar-title">{topbar.title}</h2>
+            <p className="topbar-subtitle">{topbar.subtitle}</p>
+          </div>
+          {metrics && tab !== "chatbot" && (
+            <div className="topbar-stats" data-tauri-drag-region={false}>
+              <div className="topbar-stat">
+                <span className="topbar-stat-label">Ingested</span>
+                <span className="topbar-stat-value">{metrics.totalFiles}</span>
+              </div>
+              <div className="topbar-stat">
+                <span className="topbar-stat-label">Pass Rate</span>
+                <span className="topbar-stat-value">
+                  {metrics.validationPassRate.toFixed(0)}%
+                </span>
+              </div>
+              <div className="topbar-stat">
+                <span className="topbar-stat-label">Volume</span>
+                <span className="topbar-stat-value">
+                  {formatBytes(metrics.totalBytes)}
+                </span>
+              </div>
+            </div>
+          )}
+        </header>
+
+        <div className={`content ${tab === "chatbot" ? "content-chatbot" : ""}`}>
+          {tab === "collections" && <CollectionsView />}
+          {tab === "review" && <ReviewView />}
+          {tab === "pipeline" && <PipelineView />}
+          {tab === "chatbot" && <ChatBotView />}
+        </div>
+      </div>
     </div>
   );
 }

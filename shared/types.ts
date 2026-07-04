@@ -33,6 +33,7 @@ export interface PipelineMetrics {
   totalBytes: number;
   completed: number;
   failed: number;
+  unreviewedFailed: number;
   inProgress: number;
   accuracyPct: number;
   validationPassRate: number;
@@ -41,9 +42,87 @@ export interface PipelineMetrics {
   recentFailures: PipelineFailure[];
 }
 
+export interface PipelineActivity {
+  fileId: string;
+  fileName: string;
+  status: FileStatus;
+  parserPath?: ParserPath;
+  promptTokens: number;
+  completionTokens: number;
+  aiCostUsd: number;
+  bytes: number;
+  createdAt: string;
+  errorCode?: string;
+}
+
+export interface PipelineDayStat {
+  date: string;
+  ingested: number;
+  completed: number;
+  failed: number;
+  tokens: number;
+  costUsd: number;
+}
+
+export interface ErrorBreakdown {
+  errorCode: string;
+  count: number;
+}
+
+export interface PipelineStats {
+  startDate?: string;
+  endDate?: string;
+  totalFiles: number;
+  totalBytes: number;
+  completed: number;
+  failed: number;
+  inProgress: number;
+  aiParsed: number;
+  deterministicParsed: number;
+  llmCalls: number;
+  accuracyPct: number;
+  validationPassRate: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  aiCostUsd: number;
+  activity: PipelineActivity[];
+  activityTotal: number;
+  activityPage: number;
+  activityPageSize: number;
+  dailyStats: PipelineDayStat[];
+  errorsByCode: ErrorBreakdown[];
+  recentFailures: PipelineFailure[];
+  failuresTotal: number;
+  failuresPage: number;
+  failuresPageSize: number;
+}
+
+export type DocType = "report" | "ledger" | "statement";
+
+export interface Collection {
+  id: string;
+  name: string;
+  docType: DocType;
+  createdAt: string;
+}
+
+export interface CollectionSummary {
+  id: string;
+  name: string;
+  docType: DocType;
+  createdAt: string;
+  totalFiles: number;
+  completed: number;
+  failed: number;
+  inProgress: number;
+}
+
 export interface FileRecord {
   id: string;
+  collectionId?: string;
   fileName: string;
+  mime?: string;
   status: FileStatus;
   parserPath?: ParserPath;
   bronzePath: string;
@@ -65,6 +144,21 @@ export interface FileDetail {
   accuracyPct?: number;
   errorCode?: ErrorCode;
   errorDetail?: string;
+}
+
+export interface FailedFileReview {
+  fileId: string;
+  fileName: string;
+  collectionId?: string;
+  collectionName?: string;
+  errorCode: string;
+  errorDetail?: string;
+  timestamp: string;
+  quarantinePath: string;
+  mime?: string;
+  bytes: number;
+  sidecarJson?: Record<string, unknown>;
+  reviewedAt?: string;
 }
 
 export interface AnalyticsQueryResult {

@@ -28,15 +28,17 @@ def compute_accuracy(extracted: dict, expected_path: Path) -> float | None:
     return round((correct / total) * 100, 1) if total else None
 
 
-def parse_document(file_path: Path, expected_path: Path | None = None) -> dict:
-    doc_type = detect_doc_type(file_path.name)
-    fp = fingerprint(file_path, doc_type)
+def parse_document(
+    file_path: Path, expected_path: Path | None = None, doc_type: str | None = None
+) -> dict:
+    resolved_doc_type = doc_type or detect_doc_type(file_path.name)
+    fp = fingerprint(file_path, resolved_doc_type)
     existing = lookup(fp)
 
     if existing:
         print("LLM_CALL: no", file=sys.stderr)
         try:
-            silver = execute_parser(file_path, existing, doc_type)
+            silver = execute_parser(file_path, existing, resolved_doc_type)
             accuracy = compute_accuracy(silver, expected_path) if expected_path else None
             return {
                 "parserPath": "deterministic",
@@ -55,40 +57,47 @@ def parse_document(file_path: Path, expected_path: Path | None = None) -> dict:
             }
 
     print("LLM_CALL: yes", file=sys.stderr)
-    dsl = generate_dsl(file_path, doc_type)
+    dsl, ai_usage = generate_dsl(file_path, resolved_doc_type)
 
     try:
-        silver = execute_parser(file_path, dsl, doc_type)
+        silver = execute_parser(file_path, dsl, resolved_doc_type)
         if file_path.suffix.lower() in IMAGE_EXTS:
             dsl = {**dsl, "extracted": silver}
-        save(fp, doc_type, dsl)
+        save(fp, resolved_doc_type, dsl)
         accuracy = compute_accuracy(silver, expected_path) if expected_path else None
-        return {
+        result = {
             "parserPath": "ai",
             "silverJson": silver,
             "accuracyPct": accuracy,
             "errorCode": None,
             "errorDetail": None,
         }
+        if ai_usage:
+            result["aiUsage"] = ai_usage
+        return result
     except Exception as e:
-        save(fp, doc_type, dsl)
-        return {
+        save(fp, resolved_doc_type, dsl)
+        result = {
             "parserPath": "ai",
             "silverJson": {},
             "accuracyPct": None,
             "errorCode": "SCHEMA_MISMATCH",
             "errorDetail": str(e),
         }
+        if ai_usage:
+            result["aiUsage"] = ai_usage
+        return result
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", required=True, type=Path)
     parser.add_argument("--expected", type=Path, default=None)
+    parser.add_argument("--doc-type", default=None)
     args = parser.parse_args()
 
     expected = args.expected if args.expected and args.expected.is_file() else None
-    result = parse_document(args.file, expected)
+    result = parse_document(args.file, expected, args.doc_type)
     print(json.dumps(result))
 
 
