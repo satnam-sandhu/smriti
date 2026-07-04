@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   MCP_SERVER_URL,
@@ -6,13 +7,13 @@ import {
   NITROCHAT_EMBED_URL,
 } from "../../shared/constants";
 import { callMcpTool, listMcpTools, type McpTool } from "../lib/mcp-client";
-import { toolArgGuidance, toolNeedsArgs } from "../lib/mcp-format";
+import { mergeToolArgs } from "../lib/mcp-format";
 
 interface ChatMessage {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
-  tone?: "default" | "error" | "hint";
+  tone?: "default" | "error";
 }
 
 const QUICK_TOOLS: Array<{ name: string; label: string; args?: Record<string, unknown> }> = [
@@ -70,10 +71,17 @@ export function ChatBotView() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [smritiRoot, setSmritiRoot] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const mcpOnline = connectStatus === "ready";
   const connecting = connectStatus === "connecting";
+
+  useEffect(() => {
+    void invoke<string>("get_smriti_root")
+      .then(setSmritiRoot)
+      .catch(() => setSmritiRoot(""));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -128,14 +136,10 @@ export function ChatBotView() {
       setBusy(true);
       append("user", label ?? `Run tool: ${name}`);
 
-      if (toolNeedsArgs(name, args)) {
-        append("assistant", toolArgGuidance(name), "hint");
-        setBusy(false);
-        return;
-      }
+      const resolvedArgs = smritiRoot ? mergeToolArgs(name, args, smritiRoot) : args;
 
       try {
-        const result = await callMcpTool(MCP_SERVER_URL, name, args);
+        const result = await callMcpTool(MCP_SERVER_URL, name, resolvedArgs);
         append("assistant", result);
       } catch (err) {
         append(
@@ -147,7 +151,7 @@ export function ChatBotView() {
         setBusy(false);
       }
     },
-    [append, connecting, mcpOnline],
+    [append, connecting, mcpOnline, smritiRoot],
   );
 
   const send = useCallback(async () => {
@@ -160,7 +164,8 @@ export function ChatBotView() {
     try {
       const tool = matchToolPrompt(text);
       if (tool) {
-        const result = await callMcpTool(MCP_SERVER_URL, tool.name, tool.args);
+        const resolvedArgs = smritiRoot ? mergeToolArgs(tool.name, tool.args, smritiRoot) : tool.args;
+        const result = await callMcpTool(MCP_SERVER_URL, tool.name, resolvedArgs);
         append("assistant", result);
       } else {
         const history = [...messages, { id: "tmp", role: "user" as const, content: text }];
@@ -176,7 +181,7 @@ export function ChatBotView() {
     } finally {
       setBusy(false);
     }
-  }, [append, busy, connecting, input, messages, mcpOnline]);
+  }, [append, busy, connecting, input, messages, mcpOnline, smritiRoot]);
 
   const retryConnect = useCallback(() => {
     setConnectStatus("connecting");
@@ -295,7 +300,7 @@ export function ChatBotView() {
           {messages.map((m) => (
             <div
               key={m.id}
-              className={`chatbot-msg chatbot-msg-${m.role}${m.tone === "error" ? " chatbot-msg-error" : ""}${m.tone === "hint" ? " chatbot-msg-hint" : ""}`}
+              className={`chatbot-msg chatbot-msg-${m.role}${m.tone === "error" ? " chatbot-msg-error" : ""}`}
             >
               <div className="chatbot-msg-label">
                 {m.role === "user" ? "You" : m.role === "assistant" ? "Smriti" : "System"}

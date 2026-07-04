@@ -30,6 +30,7 @@ pub fn run() {
             commands::get_file_detail,
             commands::list_files,
             commands::run_analytics_query,
+            commands::get_smriti_root,
             commands::mcp_list_tools,
             commands::mcp_call_tool,
         ])

@@ -852,6 +852,16 @@ fn resolve_workspace(app: &tauri::AppHandle) -> PathBuf {
         .unwrap_or_else(|_| PathBuf::from("data"))
 }
 
+pub fn resolve_smriti_root(app: &tauri::AppHandle) -> PathBuf {
+    let workspace = resolve_workspace(app);
+    if let Some(parent) = workspace.parent() {
+        if parent.join("parser").join("cli.py").exists() {
+            return parent.to_path_buf();
+        }
+    }
+    workspace
+}
+
 fn canonicalize_dir(path: &PathBuf) -> PathBuf {
     if path.exists() {
         return std::fs::canonicalize(path).unwrap_or_else(|_| path.clone());

@@ -2,7 +2,9 @@ use futures_util::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
+use tokio::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct McpTool {
@@ -51,36 +53,27 @@ async fn post_json(client: &Client, url: &str, body: Value) -> Result<(), String
 
 async fn wait_for_id(
     id: i64,
-    messages: &mut Vec<Value>,
-    stream: &mut (impl futures_util::Stream<Item = Result<bytes::Bytes, reqwest::Error>> + Unpin),
-    buf: &mut String,
+    messages: Arc<Mutex<Vec<Value>>>,
     timeout: Duration,
 ) -> Result<Value, String> {
     let deadline = Instant::now() + timeout;
     loop {
-        if let Some(msg) = messages.iter().find(|m| m.get("id") == Some(&json!(id))) {
-            return Ok(msg.clone());
+        {
+            let msgs = messages.lock().await;
+            if let Some(msg) = msgs.iter().find(|m| m.get("id") == Some(&json!(id))) {
+                return Ok(msg.clone());
+            }
         }
         if Instant::now() >= deadline {
             return Err(format!("MCP timeout waiting for response (id={id})"));
         }
-        let chunk = tokio::time::timeout(Duration::from_millis(800), stream.next())
-            .await
-            .map_err(|_| format!("MCP timeout waiting for response (id={id})"))?;
-        match chunk {
-            Some(Ok(bytes)) => {
-                buf.push_str(&String::from_utf8_lossy(&bytes));
-                ingest_sse(buf, messages);
-            }
-            Some(Err(e)) => return Err(e.to_string()),
-            None => return Err("MCP SSE stream closed".to_string()),
-        }
+        tokio::time::sleep(Duration::from_millis(50)).await;
     }
 }
 
 async fn run_rpc(origin: &str, req_id: i64, method: &str, params: Value) -> Result<Value, String> {
     let client = Client::builder()
-        .timeout(Duration::from_secs(60))
+        .timeout(Duration::from_secs(180))
         .build()
         .map_err(|e| e.to_string())?;
 
@@ -97,25 +90,40 @@ async fn run_rpc(origin: &str, req_id: i64, method: &str, params: Value) -> Resu
     }
 
     let mut stream = response.bytes_stream();
-    let mut buf = String::new();
-    let mut messages: Vec<Value> = vec![];
+    let messages: Arc<Mutex<Vec<Value>>> = Arc::new(Mutex::new(Vec::new()));
+    let buf: Arc<Mutex<String>> = Arc::new(Mutex::new(String::new()));
+
+    let messages_reader = messages.clone();
+    let buf_reader = buf.clone();
+    let read_task = tokio::spawn(async move {
+        while let Some(chunk) = stream.next().await {
+            match chunk {
+                Ok(bytes) => {
+                    let mut b = buf_reader.lock().await;
+                    b.push_str(&String::from_utf8_lossy(&bytes));
+                    let mut m = messages_reader.lock().await;
+                    ingest_sse(&b, &mut m);
+                }
+                Err(_) => break,
+            }
+        }
+    });
 
     let endpoint = {
         let deadline = Instant::now() + Duration::from_secs(30);
         loop {
-            if let Some(sid) = session_id(&buf) {
+            let sid = {
+                let b = buf.lock().await;
+                session_id(&b)
+            };
+            if let Some(sid) = sid {
                 break format!("{origin}/mcp/messages?sessionId={sid}");
             }
             if Instant::now() >= deadline {
+                read_task.abort();
                 return Err("MCP SSE connection timed out".to_string());
             }
-            let chunk = tokio::time::timeout(Duration::from_secs(8), stream.next())
-                .await
-                .map_err(|_| "MCP SSE connection timed out".to_string())?
-                .ok_or("MCP SSE stream closed before session ready")?
-                .map_err(|e| e.to_string())?;
-            buf.push_str(&String::from_utf8_lossy(&chunk));
-            ingest_sse(&buf, &mut messages);
+            tokio::time::sleep(Duration::from_millis(50)).await;
         }
     };
 
@@ -134,6 +142,8 @@ async fn run_rpc(origin: &str, req_id: i64, method: &str, params: Value) -> Resu
         }),
     )
     .await?;
+
+    wait_for_id(1, messages.clone(), Duration::from_secs(15)).await?;
 
     post_json(
         &client,
@@ -158,7 +168,15 @@ async fn run_rpc(origin: &str, req_id: i64, method: &str, params: Value) -> Resu
     )
     .await?;
 
-    wait_for_id(req_id, &mut messages, &mut stream, &mut buf, Duration::from_secs(45)).await
+    let timeout = if method == "tools/call" {
+        Duration::from_secs(120)
+    } else {
+        Duration::from_secs(45)
+    };
+
+    let result = wait_for_id(req_id, messages.clone(), timeout).await;
+    read_task.abort();
+    result
 }
 
 pub async fn list_tools(base: &str) -> Result<Vec<McpTool>, String> {
@@ -222,7 +240,11 @@ fn clean_tool_error(raw: &str) -> String {
             return rest[idx + 3..].trim().to_string();
         }
     }
-    trimmed.strip_prefix("Error: ").unwrap_or(trimmed).trim().to_string()
+    trimmed
+        .strip_prefix("Error: ")
+        .unwrap_or(trimmed)
+        .trim()
+        .to_string()
 }
 
 fn format_tool_text(text: &str) -> String {

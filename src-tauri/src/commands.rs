@@ -149,6 +149,11 @@ pub async fn run_analytics_query(
 }
 
 #[tauri::command]
+pub fn get_smriti_root(app: tauri::AppHandle) -> Result<String, String> {
+    Ok(crate::db::resolve_smriti_root(&app).to_string_lossy().to_string())
+}
+
+#[tauri::command]
 pub async fn mcp_list_tools(server_url: String) -> Result<Vec<crate::mcp::McpTool>, String> {
     crate::mcp::list_tools(&server_url).await
 }

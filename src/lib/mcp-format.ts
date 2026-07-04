@@ -5,77 +5,53 @@ export interface ToolArgHint {
   example?: Record<string, unknown>;
 }
 
-/** Tools that accept empty `{}` when invoked from the sidebar. */
-export const TOOLS_NO_ARGS = new Set([
-  "get_pipeline_metrics",
-  "list_plugins",
-  "list_templates",
-  "list_failures",
-]);
+const SAMPLE_REPORT = "samples/good/report_01.pdf";
+const SAMPLE_FOLDER = "samples/good";
 
-/** Tools that need parameters — show guidance instead of calling with `{}`. */
-export const TOOL_ARG_HINTS: Record<string, ToolArgHint> = {
-  classify_document: {
-    summary: "Needs documentId (from upload_document) or file_path.",
-    example: { file_path: "/path/to/document.pdf" },
-  },
-  get_document: {
-    summary: "Needs documentId from upload_document or search_documents.",
-    example: { documentId: "<uuid-from-upload>" },
-  },
-  process_document: {
-    summary: "Needs documentId from upload_document or search_documents.",
-    example: { documentId: "<uuid-from-upload>" },
-  },
-  upload_document: {
-    summary: "Needs file_path or content + filename.",
-    example: { file_path: "/path/to/document.pdf" },
-  },
-  upload_folder: {
-    summary: "Needs folder_path pointing at a directory of documents.",
-    example: { folder_path: "/path/to/folder" },
-  },
-  identify_template: {
-    summary: "Needs file_path to the document on disk.",
-    example: { file_path: "/path/to/document.pdf" },
-  },
-  generate_parser: {
-    summary: "Needs file_path to the document on disk.",
-    example: { file_path: "/path/to/document.pdf" },
-  },
-  execute_parser: {
-    summary: "Needs file_path to the document on disk.",
-    example: { file_path: "/path/to/document.pdf" },
-  },
-  search_documents: {
-    summary: "Needs a search query string.",
-    example: { query: "report" },
-  },
-  analytics_query: {
-    summary: "Needs SQL against Gold Parquet.",
-    example: { sql: "SELECT * FROM read_parquet('GOLD_GLOB') LIMIT 5" },
-  },
-  install_plugin: {
-    summary: "Needs plugin name: healthcare or finance.",
-    example: { name: "finance" },
-  },
-};
-
-export function toolNeedsArgs(name: string, args: Record<string, unknown>): boolean {
-  if (TOOLS_NO_ARGS.has(name)) return false;
-  if (Object.keys(args).length > 0) return false;
-  return Boolean(TOOL_ARG_HINTS[name]);
+function joinRoot(root: string, relative: string): string {
+  return `${root.replace(/\/$/, "")}/${relative}`;
 }
 
-export function toolArgGuidance(name: string): string {
-  const hint = TOOL_ARG_HINTS[name];
-  if (!hint) {
-    return `Tool "${name}" requires arguments. Ask in chat with details (e.g. file path or document ID).`;
+/** Default args when a sidebar tool is clicked with no parameters. */
+export function defaultToolArgs(
+  name: string,
+  smritiRoot: string,
+): Record<string, unknown> {
+  const report = joinRoot(smritiRoot, SAMPLE_REPORT);
+  const folder = joinRoot(smritiRoot, SAMPLE_FOLDER);
+
+  switch (name) {
+    case "get_pipeline_metrics":
+    case "list_plugins":
+    case "list_templates":
+    case "list_failures":
+      return {};
+    case "install_plugin":
+      return { name: "finance" };
+    case "search_documents":
+      return { query: "report" };
+    case "analytics_query":
+      return { sql: "SELECT * FROM read_parquet('GOLD_GLOB') LIMIT 5" };
+    case "upload_folder":
+      return { folder_path: folder };
+    case "upload_document":
+    case "identify_template":
+    case "generate_parser":
+    case "execute_parser":
+    case "classify_document":
+      return { file_path: report };
+    default:
+      return {};
   }
-  const example = hint.example
-    ? `\n\nExample:\n${JSON.stringify(hint.example, null, 2)}`
-    : "";
-  return `${hint.summary}${example}`;
+}
+
+export function mergeToolArgs(
+  name: string,
+  args: Record<string, unknown>,
+  smritiRoot: string,
+): Record<string, unknown> {
+  if (Object.keys(args).length > 0) return args;
+  return defaultToolArgs(name, smritiRoot);
 }
 
 export function cleanMcpErrorMessage(raw: string): string {
@@ -136,6 +112,17 @@ function formatStructuredValue(data: unknown): string {
     return results
       .slice(0, 8)
       .map((r) => `• ${r.metadata?.filename ?? r.documentId ?? "doc"} (score ${r.score ?? "—"})`)
+      .join("\n");
+  }
+  if ("documentId" in obj && "status" in obj) {
+    const r = obj as Record<string, unknown>;
+    return [
+      `Document: ${r.documentId}`,
+      `Status: ${r.status}`,
+      r.parserPath ? `Parser: ${r.parserPath}` : null,
+      r.documentType ? `Type: ${r.documentType}` : null,
+    ]
+      .filter(Boolean)
       .join("\n");
   }
 

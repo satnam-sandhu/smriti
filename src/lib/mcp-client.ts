@@ -135,6 +135,7 @@ async function withMcpSessionBrowser<T>(
       clientInfo: { name: "smriti-desktop", version: "1.0" },
     },
   });
+  await waitForId(messages, 1, 15000);
   await mcpPost(serverUrl, ep, {
     jsonrpc: "2.0",
     method: "notifications/initialized",
@@ -176,7 +177,7 @@ async function callMcpToolBrowser(
       method: "tools/call",
       params: { name, arguments: args },
     });
-    const msg = await waitForId(messages, reqId, 45000);
+    const msg = await waitForId(messages, reqId, 120000);
     if (msg.error) throw new Error(cleanMcpErrorMessage(msg.error.message));
     if (msg.result?.isError) {
       throw new Error(cleanMcpErrorMessage(msg.result.content?.[0]?.text ?? "Tool failed"));
