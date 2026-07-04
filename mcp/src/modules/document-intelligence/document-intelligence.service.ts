@@ -294,13 +294,27 @@ export class DocumentIntelligenceService {
   }
 
   classifyDocument(documentId: string) {
-    const doc = this.getDocument(documentId);
-    if (!doc) throw new Error(`Document not found: ${documentId}`);
+    const id = documentId?.trim();
+    if (!id || id === 'undefined' || id === 'null') {
+      throw new Error(
+        'documentId is required. Upload a document with upload_document first.',
+      );
+    }
+    const doc = this.getDocument(id);
+    if (!doc) throw new Error(`Document not found: ${id}`);
     const result = runMcpBridge('classify', ['--file', doc.bronzePath]) as Record<
       string,
       unknown
     >;
     return result;
+  }
+
+  classifyByPath(filePath: string) {
+    const path = filePath?.trim();
+    if (!path) {
+      throw new Error('file_path is required to classify a document by path.');
+    }
+    return runMcpBridge('classify', ['--file', path]) as Record<string, unknown>;
   }
 
   processDocument(documentId: string): DocumentRecord {

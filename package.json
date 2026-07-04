@@ -17,6 +17,7 @@
     "dev:nitrochat": "npm run dev --prefix nitrochat",
     "build:nitrochat": "npm run build --prefix nitrochat",
     "dev:local": "bash scripts/dev-local.sh",
+    "test:mcp": "node scripts/test-all-mcp-tools.mjs",
     "setup": "bash scripts/setup.sh",
     "setup:parser": "python3 -m venv parser/.venv && parser/.venv/bin/pip install -r parser/requirements.txt"
   },

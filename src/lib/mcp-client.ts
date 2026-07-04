@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { cleanMcpErrorMessage, formatMcpResponse } from "./mcp-format";
 
 export interface McpTool {
   name: string;
@@ -176,12 +177,12 @@ async function callMcpToolBrowser(
       params: { name, arguments: args },
     });
     const msg = await waitForId(messages, reqId, 45000);
-    if (msg.error) throw new Error(msg.error.message);
+    if (msg.error) throw new Error(cleanMcpErrorMessage(msg.error.message));
     if (msg.result?.isError) {
-      throw new Error(msg.result.content?.[0]?.text ?? "Tool failed");
+      throw new Error(cleanMcpErrorMessage(msg.result.content?.[0]?.text ?? "Tool failed"));
     }
     const text = (msg.result?.content ?? []).map((p) => p.text ?? "").join("\n").trim();
-    return text || JSON.stringify(msg.result, null, 2);
+    return formatMcpResponse(text || JSON.stringify(msg.result, null, 2));
   });
 }
 
@@ -197,10 +198,16 @@ export async function callMcpTool(
   name: string,
   args: Record<string, unknown> = {},
 ): Promise<string> {
-  if (isTauri()) {
-    return invoke<string>("mcp_call_tool", { serverUrl, name, args });
+  try {
+    if (isTauri()) {
+      const raw = await invoke<string>("mcp_call_tool", { serverUrl, name, args });
+      return formatMcpResponse(raw);
+    }
+    return await callMcpToolBrowser(serverUrl, name, args);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(cleanMcpErrorMessage(msg));
   }
-  return callMcpToolBrowser(serverUrl, name, args);
 }
 
 export async function pingMcpServer(serverUrl: string): Promise<boolean> {
