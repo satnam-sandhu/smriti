@@ -20,13 +20,24 @@ def register_gold_view(db_path: str, gold_glob: str, view_name: str = GOLD_VIEW)
     escaped = gold_glob.replace("'", "''")
     conn.execute(
         f"CREATE OR REPLACE VIEW {view_name} AS "
-        f"SELECT * FROM read_parquet('{escaped}')"
+        f"SELECT * FROM read_parquet('{escaped}', union_by_name=true)"
     )
     conn.close()
 
 
+def apply_union_by_name(sql: str, gold_glob: str) -> str:
+    """Mixed doc types produce different Parquet schemas — union columns across files."""
+    if "read_parquet(" in sql and "union_by_name" not in sql and "*" in gold_glob:
+        sql = sql.replace(
+            f"read_parquet('{gold_glob}')",
+            f"read_parquet('{gold_glob}', union_by_name=true)",
+        )
+    return sql
+
+
 def run_query(db_path: str | None, sql: str, gold_glob: str) -> dict:
     sql = sql.replace("GOLD_GLOB", gold_glob).replace("'GOLD_GLOB'", f"'{gold_glob}'")
+    sql = apply_union_by_name(sql, gold_glob)
 
     if db_path and Path(db_path).exists():
         conn = duckdb.connect(db_path)
