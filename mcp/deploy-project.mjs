@@ -88,7 +88,7 @@ function uploadToS3(url, fileBuffer) {
 }
 
 function copyDeployTree(staging) {
-  const skip = new Set(['node_modules', 'dist', '.git', '.env', 'data']);
+  const skip = new Set(['node_modules', '.git', '.env', 'data']);
   for (const name of fs.readdirSync(MCP_ROOT)) {
     if (skip.has(name)) continue;
     cpSync(join(MCP_ROOT, name), join(staging, name), { recursive: true });
@@ -97,6 +97,14 @@ function copyDeployTree(staging) {
   cpSync(join(SMRITI_ROOT, 'parser'), join(staging, 'parser'), { recursive: true });
   if (fs.existsSync(join(SMRITI_ROOT, 'samples'))) {
     cpSync(join(SMRITI_ROOT, 'samples'), join(staging, 'samples'), { recursive: true });
+  }
+
+  // Pre-built artifacts (cloud may skip compile step)
+  for (const artifact of ['dist', join('src', 'widgets', 'out')]) {
+    const src = join(MCP_ROOT, artifact);
+    if (fs.existsSync(src)) {
+      cpSync(src, join(staging, artifact), { recursive: true });
+    }
   }
 
   fs.mkdirSync(join(staging, 'data'), { recursive: true });
@@ -119,6 +127,7 @@ async function main() {
   console.log('🚀 Deploying smriti-mcp to NitroCloud...');
 
   console.log('📦 Building MCP...');
+  execSync('node scripts/export-templates.mjs', { cwd: MCP_ROOT, stdio: 'inherit' });
   execSync('npm run build', { cwd: MCP_ROOT, stdio: 'inherit' });
 
   const staging = mkdtempSync(join(tmpdir(), 'smriti-deploy-'));
@@ -130,7 +139,7 @@ async function main() {
 
     if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
     execSync(
-      `zip -r "${zipPath}" . -x "node_modules/*" -x "out/*" -x ".next/*" -x "src/widgets/node_modules/*" -x "src/widgets/out/*" -x "src/widgets/.next/*" -x ".turbo/*" -x ".git/*" -x ".env" -x "parser/.venv/*" -x "**/__pycache__/*" -x "*.DS_Store" -x "deploy-project.mjs" -x "package-lock.json"`,
+      `zip -r "${zipPath}" . -x "node_modules/*" -x "out/*" -x ".next/*" -x "src/widgets/node_modules/*" -x "src/widgets/.next/*" -x ".turbo/*" -x ".git/*" -x ".env" -x "parser/.venv/*" -x "**/__pycache__/*" -x "*.DS_Store" -x "deploy-project.mjs"`,
       { cwd: staging, stdio: 'inherit' },
     );
 
@@ -232,6 +241,7 @@ async function main() {
           console.log('\n🎉 Deployed:', info.serviceUrl);
           process.exit(0);
         }
+        console.error('\nDeployment logs:', info.buildLogs || info.errorMessage || info.deploymentStatus);
         throw new Error(info.errorMessage || `Deployment failed: ${info.status}`);
       }
     }

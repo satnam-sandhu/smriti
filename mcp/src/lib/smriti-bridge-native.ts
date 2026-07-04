@@ -1,25 +1,22 @@
 /**
- * Native TypeScript MCP bridge — no Python required.
- * Used on NitroCloud and as fallback for local dev.
+ * Native TypeScript MCP bridge — no Python or native addons required.
+ * Persists state in WORKSPACE/smriti-state.json (cloud-safe).
  */
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import {
   existsSync,
-  mkdirSync,
   readFileSync,
   readdirSync,
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
-import Database from 'better-sqlite3';
 import {
   WORKSPACE,
-  bronzeDir,
   ensureWorkspaceDirs,
   pluginPath,
   quarantineDir,
-  registryPath,
   silverDir,
+  SMRITI_ROOT,
 } from './smriti-paths.js';
 
 const PLUGIN_DEFINITIONS = {
@@ -39,35 +36,55 @@ const PLUGIN_DEFINITIONS = {
   },
 } as const;
 
-const REGISTRY_PATH = () => registryPath();
+interface FileRow {
+  id: string;
+  file_name: string;
+  status: string;
+  parser_path: string | null;
+  bronze_path: string;
+  silver_path: string | null;
+  bytes: number;
+  error_code: string | null;
+  error_detail: string | null;
+  accuracy_pct: number | null;
+  created_at: string;
+}
 
-function db(): Database.Database {
+interface FailureRow {
+  id: number;
+  file_id: string;
+  file_name: string;
+  error_code: string;
+  error_detail: string | null;
+  timestamp: string;
+}
+
+interface State {
+  files: FileRow[];
+  failures: FailureRow[];
+  nextFailureId: number;
+}
+
+const STATE_PATH = () => join(WORKSPACE, 'smriti-state.json');
+
+function templateManifestPath(): string | null {
+  const candidates = [
+    join(SMRITI_ROOT, 'parser/templates-manifest.json'),
+    join(process.cwd(), 'parser/templates-manifest.json'),
+  ];
+  return candidates.find((p) => existsSync(p)) ?? null;
+}
+
+function loadState(): State {
   ensureWorkspaceDirs();
-  const conn = new Database(join(WORKSPACE, 'smriti.db'));
-  conn.exec(`
-    CREATE TABLE IF NOT EXISTS files (
-      id TEXT PRIMARY KEY,
-      file_name TEXT NOT NULL,
-      status TEXT NOT NULL,
-      parser_path TEXT,
-      bronze_path TEXT NOT NULL,
-      silver_path TEXT,
-      bytes INTEGER NOT NULL,
-      error_code TEXT,
-      error_detail TEXT,
-      accuracy_pct REAL,
-      created_at TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS failures (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      file_id TEXT NOT NULL,
-      file_name TEXT NOT NULL,
-      error_code TEXT NOT NULL,
-      error_detail TEXT,
-      timestamp TEXT NOT NULL
-    );
-  `);
-  return conn;
+  if (!existsSync(STATE_PATH())) {
+    return { files: [], failures: [], nextFailureId: 1 };
+  }
+  return JSON.parse(readFileSync(STATE_PATH(), 'utf-8')) as State;
+}
+
+function saveState(state: State) {
+  writeFileSync(STATE_PATH(), JSON.stringify(state, null, 2));
 }
 
 function parseArgs(args: string[]): Record<string, string> {
@@ -97,13 +114,35 @@ function fingerprintFile(filePath: string, docType: string): string {
 }
 
 function lookupTemplate(fp: string): Record<string, unknown> | null {
-  if (!existsSync(REGISTRY_PATH())) return null;
-  const reg = new Database(REGISTRY_PATH(), { readonly: true });
-  const row = reg
-    .prepare('SELECT dsl_json FROM parser_registry WHERE fingerprint = ?')
-    .get(fp) as { dsl_json: string } | undefined;
-  reg.close();
-  return row ? JSON.parse(row.dsl_json) : null;
+  for (const row of loadTemplateManifest()) {
+    if (row.fingerprint === fp) return JSON.parse(row.dsl_json);
+  }
+  return null;
+}
+
+function loadTemplateManifest(): Array<{
+  fingerprint: string;
+  doc_type: string;
+  dsl_json: string;
+  created_at: string;
+}> {
+  const path = templateManifestPath();
+  if (!path) return [];
+  return JSON.parse(readFileSync(path, 'utf-8')) as Array<{
+    fingerprint: string;
+    doc_type: string;
+    dsl_json: string;
+    created_at: string;
+  }>;
+}
+
+function listTemplatesFromRegistry(): Array<{
+  fingerprint: string;
+  doc_type: string;
+  dsl_json: string;
+  created_at: string;
+}> {
+  return loadTemplateManifest();
 }
 
 export function runNativeBridge(command: string, args: string[] = []): unknown {
@@ -111,53 +150,28 @@ export function runNativeBridge(command: string, args: string[] = []): unknown {
 
   switch (command) {
     case 'metrics': {
-      const conn = db();
-      const totalFiles = (
-        conn.prepare('SELECT COUNT(*) AS c FROM files').get() as { c: number }
-      ).c;
-      const totalBytes = (
-        conn.prepare('SELECT COALESCE(SUM(bytes), 0) AS s FROM files').get() as {
-          s: number;
-        }
-      ).s;
-      const completed = (
-        conn.prepare("SELECT COUNT(*) AS c FROM files WHERE status='completed'").get() as {
-          c: number;
-        }
-      ).c;
-      const failed = (
-        conn.prepare("SELECT COUNT(*) AS c FROM files WHERE status='failed'").get() as {
-          c: number;
-        }
-      ).c;
-      const inProgress = (
-        conn
-          .prepare("SELECT COUNT(*) AS c FROM files WHERE status IN ('queued','processing')")
-          .get() as { c: number }
-      ).c;
-      const aiParsed = (
-        conn.prepare("SELECT COUNT(*) AS c FROM files WHERE parser_path='ai'").get() as {
-          c: number;
-        }
-      ).c;
-      const deterministicParsed = (
-        conn
-          .prepare("SELECT COUNT(*) AS c FROM files WHERE parser_path='deterministic'")
-          .get() as { c: number }
-      ).c;
-      const accuracyPct = (
-        conn
-          .prepare(
-            'SELECT COALESCE(AVG(accuracy_pct), 0) AS a FROM files WHERE accuracy_pct IS NOT NULL',
-          )
-          .get() as { a: number }
-      ).a;
-      const recentFailures = conn
-        .prepare(
-          'SELECT file_name AS fileName, error_code AS errorCode, timestamp FROM failures ORDER BY id DESC LIMIT 10',
-        )
-        .all();
-      conn.close();
+      const state = loadState();
+      const totalFiles = state.files.length;
+      const totalBytes = state.files.reduce((s, f) => s + f.bytes, 0);
+      const completed = state.files.filter((f) => f.status === 'completed').length;
+      const failed = state.files.filter((f) => f.status === 'failed').length;
+      const inProgress = state.files.filter((f) =>
+        ['queued', 'processing'].includes(f.status),
+      ).length;
+      const aiParsed = state.files.filter((f) => f.parser_path === 'ai').length;
+      const deterministicParsed = state.files.filter((f) => f.parser_path === 'deterministic').length;
+      const withAccuracy = state.files.filter((f) => f.accuracy_pct != null);
+      const accuracyPct = withAccuracy.length
+        ? withAccuracy.reduce((s, f) => s + (f.accuracy_pct ?? 0), 0) / withAccuracy.length
+        : 0;
+      const recentFailures = [...state.failures]
+        .sort((x, y) => y.id - x.id)
+        .slice(0, 10)
+        .map((f) => ({
+          fileName: f.file_name,
+          errorCode: f.error_code,
+          timestamp: f.timestamp,
+        }));
       return {
         totalFiles,
         totalBytes,
@@ -200,19 +214,7 @@ export function runNativeBridge(command: string, args: string[] = []): unknown {
     }
 
     case 'list-templates': {
-      if (!existsSync(REGISTRY_PATH())) return { templates: [] };
-      const reg = new Database(REGISTRY_PATH(), { readonly: true });
-      const rows = reg
-        .prepare(
-          'SELECT fingerprint, doc_type, dsl_json, created_at FROM parser_registry ORDER BY created_at DESC',
-        )
-        .all() as Array<{
-        fingerprint: string;
-        doc_type: string;
-        dsl_json: string;
-        created_at: string;
-      }>;
-      reg.close();
+      const rows = listTemplatesFromRegistry();
       const templates = rows.map((row) => {
         const dsl = JSON.parse(row.dsl_json) as Record<string, unknown>;
         let fields: string[] = [];
@@ -232,13 +234,17 @@ export function runNativeBridge(command: string, args: string[] = []): unknown {
     }
 
     case 'list-failures': {
-      const conn = db();
-      const failures = conn
-        .prepare(
-          'SELECT file_id, file_name, error_code, error_detail, timestamp FROM failures ORDER BY id DESC LIMIT 50',
-        )
-        .all();
-      conn.close();
+      const state = loadState();
+      const failures = [...state.failures]
+        .sort((x, y) => y.id - x.id)
+        .slice(0, 50)
+        .map((f) => ({
+          file_id: f.file_id,
+          file_name: f.file_name,
+          error_code: f.error_code,
+          error_detail: f.error_detail,
+          timestamp: f.timestamp,
+        }));
       const sidecars: unknown[] = [];
       const q = quarantineDir();
       if (existsSync(q)) {
@@ -252,69 +258,59 @@ export function runNativeBridge(command: string, args: string[] = []): unknown {
     }
 
     case 'register-file': {
-      const conn = db();
-      conn
-        .prepare(
-          `INSERT INTO files (id, file_name, status, parser_path, bronze_path, silver_path, bytes, error_code, error_detail, accuracy_pct, created_at)
-           VALUES (?, ?, 'queued', NULL, ?, NULL, ?, NULL, NULL, NULL, ?)`,
-        )
-        .run(
-          a.document_id,
-          a.filename,
-          a.bronze_path,
-          Number(a.bytes),
-          new Date().toISOString(),
-        );
-      conn.close();
+      const state = loadState();
+      state.files.push({
+        id: a.document_id,
+        file_name: a.filename,
+        status: 'queued',
+        parser_path: null,
+        bronze_path: a.bronze_path,
+        silver_path: null,
+        bytes: Number(a.bytes),
+        error_code: null,
+        error_detail: null,
+        accuracy_pct: null,
+        created_at: new Date().toISOString(),
+      });
+      saveState(state);
       return { documentId: a.document_id, status: 'queued' };
     }
 
     case 'update-file': {
-      const conn = db();
-      conn
-        .prepare(
-          `UPDATE files SET status=?, parser_path=?, silver_path=?, error_code=?, error_detail=?, accuracy_pct=? WHERE id=?`,
-        )
-        .run(
-          a.status,
-          a.parser_path || null,
-          a.silver_path || null,
-          a.error_code || null,
-          a.error_detail || null,
-          a.accuracy_pct ? Number(a.accuracy_pct) : null,
-          a.document_id,
-        );
-      conn.close();
+      const state = loadState();
+      const row = state.files.find((f) => f.id === a.document_id);
+      if (!row) throw new Error(`Unknown document: ${a.document_id}`);
+      row.status = a.status;
+      row.parser_path = a.parser_path || null;
+      row.silver_path = a.silver_path || null;
+      row.error_code = a.error_code || null;
+      row.error_detail = a.error_detail || null;
+      row.accuracy_pct = a.accuracy_pct ? Number(a.accuracy_pct) : null;
+      saveState(state);
       return { documentId: a.document_id, status: a.status };
     }
 
     case 'record-failure': {
-      const conn = db();
-      conn
-        .prepare(
-          'INSERT INTO failures (file_id, file_name, error_code, error_detail, timestamp) VALUES (?, ?, ?, ?, ?)',
-        )
-        .run(
-          a.document_id,
-          a.filename,
-          a.error_code,
-          a.error_detail ?? '',
-          new Date().toISOString(),
-        );
-      conn.close();
+      const state = loadState();
+      state.failures.push({
+        id: state.nextFailureId++,
+        file_id: a.document_id,
+        file_name: a.filename,
+        error_code: a.error_code,
+        error_detail: a.error_detail ?? '',
+        timestamp: new Date().toISOString(),
+      });
+      saveState(state);
       return { recorded: true };
     }
 
     case 'get-document': {
-      const conn = db();
-      const row = conn
-        .prepare('SELECT * FROM files WHERE id = ?')
-        .get(a.document_id) as Record<string, unknown> | undefined;
-      conn.close();
+      const state = loadState();
+      const row = state.files.find((f) => f.id === a.document_id);
       if (!row) return { found: false };
       let extractedData = null;
-      if (row.silver_path && existsSync(String(row.silver_path))) {
-        extractedData = JSON.parse(readFileSync(String(row.silver_path), 'utf-8'));
+      if (row.silver_path && existsSync(row.silver_path)) {
+        extractedData = JSON.parse(readFileSync(row.silver_path, 'utf-8'));
       }
       return {
         found: true,
@@ -335,24 +331,21 @@ export function runNativeBridge(command: string, args: string[] = []): unknown {
     case 'search': {
       const query = (a.query ?? '').toLowerCase();
       const terms = query.split(/\s+/).filter(Boolean);
-      const conn = db();
-      const rows = conn
-        .prepare("SELECT * FROM files WHERE status='completed' ORDER BY created_at DESC")
-        .all() as Array<Record<string, unknown>>;
-      conn.close();
-      const results = rows
+      const state = loadState();
+      const results = state.files
+        .filter((row) => row.status === 'completed')
         .filter((row) => {
           let silver: Record<string, unknown> = {};
-          if (row.silver_path && existsSync(String(row.silver_path))) {
-            silver = JSON.parse(readFileSync(String(row.silver_path), 'utf-8'));
+          if (row.silver_path && existsSync(row.silver_path)) {
+            silver = JSON.parse(readFileSync(row.silver_path, 'utf-8'));
           }
           const haystack = `${row.file_name} ${row.parser_path ?? ''} ${JSON.stringify(silver)}`.toLowerCase();
           return !terms.length || terms.every((t) => haystack.includes(t));
         })
         .map((row) => {
           let extractedData = {};
-          if (row.silver_path && existsSync(String(row.silver_path))) {
-            extractedData = JSON.parse(readFileSync(String(row.silver_path), 'utf-8'));
+          if (row.silver_path && existsSync(row.silver_path)) {
+            extractedData = JSON.parse(readFileSync(row.silver_path, 'utf-8'));
           }
           return {
             documentId: row.id,
@@ -400,7 +393,7 @@ export function runAnalyticsNative(sql: string, goldGlob: string): {
   columns: string[];
   rows: Record<string, unknown>[];
 } {
-  // Fallback: read silver JSON files when DuckDB/Python unavailable
+  void goldGlob;
   const dir = silverDir();
   if (!existsSync(dir)) return { columns: [], rows: [] };
 
