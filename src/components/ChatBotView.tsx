@@ -6,11 +6,13 @@ import {
   NITROCHAT_EMBED_URL,
 } from "../../shared/constants";
 import { callMcpTool, listMcpTools, type McpTool } from "../lib/mcp-client";
+import { toolArgGuidance, toolNeedsArgs } from "../lib/mcp-format";
 
 interface ChatMessage {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
+  tone?: "default" | "error" | "hint";
 }
 
 const QUICK_TOOLS: Array<{ name: string; label: string; args?: Record<string, unknown> }> = [
@@ -46,7 +48,16 @@ async function askNitroChat(messages: ChatMessage[]): Promise<string> {
       provider: "gateway",
     }),
   });
-  if (!res.ok) throw new Error(`Chat API error: ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text();
+    try {
+      const err = JSON.parse(body) as { error?: string };
+      throw new Error(err.error ?? `Chat API error: ${res.status}`);
+    } catch (e) {
+      if (e instanceof Error && e.message !== `Chat API error: ${res.status}`) throw e;
+      throw new Error(body.trim() || `Chat API error: ${res.status}`);
+    }
+  }
   const data = (await res.json()) as { message?: { content?: string } };
   return data.message?.content ?? "No response from NitroChat.";
 }
@@ -78,7 +89,7 @@ export function ChatBotView() {
             id: "welcome",
             role: "system",
             content:
-              "Smriti AI — connected to production MCP. Use quick tools or ask about metrics, plugins, and templates.",
+              "Smriti AI — connected to local MCP. LLM replies go through NitroStack gateway via NitroChat.",
           },
         ]);
       } catch (err) {
@@ -104,15 +115,25 @@ export function ChatBotView() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, busy]);
 
-  const append = useCallback((role: ChatMessage["role"], content: string) => {
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role, content }]);
-  }, []);
+  const append = useCallback(
+    (role: ChatMessage["role"], content: string, tone: ChatMessage["tone"] = "default") => {
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role, content, tone }]);
+    },
+    [],
+  );
 
   const runTool = useCallback(
     async (name: string, args: Record<string, unknown> = {}, label?: string) => {
       if (connecting || !mcpOnline) return;
       setBusy(true);
       append("user", label ?? `Run tool: ${name}`);
+
+      if (toolNeedsArgs(name, args)) {
+        append("assistant", toolArgGuidance(name), "hint");
+        setBusy(false);
+        return;
+      }
+
       try {
         const result = await callMcpTool(MCP_SERVER_URL, name, args);
         append("assistant", result);
@@ -120,6 +141,7 @@ export function ChatBotView() {
         append(
           "assistant",
           err instanceof Error ? err.message : String(err),
+          "error",
         );
       } finally {
         setBusy(false);
@@ -149,6 +171,7 @@ export function ChatBotView() {
       append(
         "assistant",
         err instanceof Error ? err.message : String(err),
+        "error",
       );
     } finally {
       setBusy(false);
@@ -177,7 +200,7 @@ export function ChatBotView() {
         <div className="chatbot-mcp-header">
           <div>
             <h3>MCP Tools</h3>
-            <p className="chatbot-mcp-url">{MCP_SERVER_URL.replace("https://", "")}</p>
+            <p className="chatbot-mcp-url">{MCP_SERVER_URL.replace(/^https?:\/\//, "")}</p>
           </div>
           <span
             className={`chatbot-mcp-status ${connecting ? "connecting" : mcpOnline ? "online" : "offline"}`}
@@ -251,8 +274,8 @@ export function ChatBotView() {
               <div className="chatbot-connect-card">
                 <span className="chatbot-spinner chatbot-spinner-lg" aria-hidden />
                 <h4>Connecting to MCP</h4>
-                <p>Establishing session with production Smriti server…</p>
-                <p className="chatbot-connect-url">{MCP_SERVER_URL.replace("https://", "")}</p>
+                <p>Establishing session with local MCP server…</p>
+                <p className="chatbot-connect-url">{MCP_SERVER_URL.replace(/^https?:\/\//, "")}</p>
               </div>
             </div>
           )}
@@ -270,7 +293,10 @@ export function ChatBotView() {
           )}
 
           {messages.map((m) => (
-            <div key={m.id} className={`chatbot-msg chatbot-msg-${m.role}`}>
+            <div
+              key={m.id}
+              className={`chatbot-msg chatbot-msg-${m.role}${m.tone === "error" ? " chatbot-msg-error" : ""}${m.tone === "hint" ? " chatbot-msg-hint" : ""}`}
+            >
               <div className="chatbot-msg-label">
                 {m.role === "user" ? "You" : m.role === "assistant" ? "Smriti" : "System"}
               </div>

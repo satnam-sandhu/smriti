@@ -21,7 +21,9 @@ In [NitroStudio](https://nitrostack.ai/studio), point the chatbot’s MCP server
 bash scripts/setup.sh
 cp .env.example .env   # add OPENROUTER_API_KEY
 npm run dev            # Smriti desktop app
-npm run dev:mcp        # NitroStack MCP server
+npm run dev:mcp:http    # MCP HTTP on :3000 (for NitroChat / desktop)
+npm run dev:mcp         # MCP STDIO (for NitroStudio only)
+npm run dev:nitrochat  # NitroChat UI (port 3003)
 ```
 
 ## Repo structure
@@ -32,6 +34,7 @@ smriti/
 ├── src-tauri/           # Tauri/Rust pipeline (Person 1)
 ├── parser/              # Python parser + OpenRouter DSL (Person 2)
 ├── mcp/                 # NitroStack MCP server (Person 4) — Full PRD tools
+├── nitrochat/           # NitroChat UI for MCP (develop branch, Smriti-branded)
 ├── shared/types.ts      # API contract — all team reads this
 ├── shared/constants.ts  # Active plugin + Gold partition paths
 ├── data/                # Unified workspace (Bronze/Silver/Gold/SQLite)
@@ -69,6 +72,31 @@ smriti/
 Connect via [NitroStudio](https://nitrostack.ai/studio) → open `mcp/` folder.
 
 See [mcp/README.md](mcp/README.md) for full tool list and architecture.
+
+## NitroChat (local)
+
+Local stack: **MCP on :3000**, **NitroChat on :3003**, **LLM via NitroStack gateway** (`https://gateway.dev.nitrostack.ai`).
+
+```bash
+cp mcp/.env.example mcp/.env
+cp nitrochat/.env.smriti.example nitrochat/.env.local
+cp .env.example .env
+# Set NITROCHAT_GATEWAY_API_KEY in nitrochat/.env.local
+
+npm run dev:local      # MCP + NitroChat together
+npm run dev            # Smriti desktop (uses localhost URLs from .env)
+```
+
+| Service | URL |
+|---------|-----|
+| Smriti MCP | http://localhost:3000 |
+| NitroChat | http://localhost:3003 |
+| NitroChat embed | http://localhost:3003/embed |
+| LLM gateway | https://gateway.dev.nitrostack.ai |
+
+Cloud URLs remain documented above for deployed demos.
+
+Local MCP reads/writes **`data/`** (Bronze, Silver, Gold, `smriti-state.json`, `smriti.db`) — same folder as the Tauri desktop app.
 
 ## Team assignments
 

@@ -1,0 +1,128 @@
+{
+    "mcp": {
+        "serverUrl": "http://localhost:3000",
+        "apiKey": null
+    },
+    "branding": {
+        "name": "Smriti",
+        "tagline": "Enterprise document ingestion assistant",
+        "logo": "/smriti-logo.svg",
+        "favicon": null,
+        "faviconDark": "/smriti-logo.svg",
+        "faviconLight": "/smriti-logo.svg"
+    },
+    "theme_version_2": {
+        "mode": "dark",
+        "logo_url_light": "/smriti-logo.svg",
+        "logo_url_dark": "/smriti-logo.svg",
+        "light": {
+            "brand_color": "#1E88E5",
+            "advanced_customization": {
+                "header": {
+                    "header_background_color": "#1E88E5",
+                    "header_text_color": "#FFFFFF",
+                    "header_subtext_color": "#DCEBFF"
+                },
+                "chat_area": {
+                    "chat_area_background_color": "#F5F7FA"
+                },
+                "input_area": {
+                    "input_area_background_color": "#FFFFFF",
+                    "input_area_text_color": "#212121",
+                    "input_area_placeholder_color": "#9E9E9E",
+                    "input_area_border_color": "#E0E0E0",
+                    "input_area_send_button_background_color": "#1E88E5",
+                    "input_area_send_button_icon_color": "#FFFFFF"
+                },
+                "message": {
+                    "ai_bubble_background_color": "#FFFFFF",
+                    "ai_bubble_text_color": "#212121",
+                    "user_bubble_background_color": "#1E88E5",
+                    "user_bubble_text_color": "#FFFFFF"
+                },
+                "alerts": {
+                    "alert_background_color": "#FFFFFF",
+                    "alert_text_color": "#212121"
+                },
+                "border": {
+                    "borders_and_dividers_color": "#E0E0E0"
+                }
+            }
+        },
+        "dark": {
+            "brand_color": "#1D7AF2",
+            "advanced_customization": {
+                "header": {
+                    "header_background_color": "#1D7AF2",
+                    "header_text_color": "#FFFFFF",
+                    "header_subtext_color": "#DCEBFF"
+                },
+                "chat_area": {
+                    "chat_area_background_color": "#0A0B0D"
+                },
+                "input_area": {
+                    "input_area_background_color": "#16181C",
+                    "input_area_text_color": "#E9E9F0",
+                    "input_area_placeholder_color": "#9CA3AF",
+                    "input_area_border_color": "#252830",
+                    "input_area_send_button_background_color": "#1D7AF2",
+                    "input_area_send_button_icon_color": "#FFFFFF"
+                },
+                "message": {
+                    "ai_bubble_background_color": "#16181C",
+                    "ai_bubble_text_color": "#E9E9F0",
+                    "user_bubble_background_color": "#1D7AF2",
+                    "user_bubble_text_color": "#FFFFFF"
+                },
+                "alerts": {
+                    "alert_background_color": "#16181C",
+                    "alert_text_color": "#E9E9F0"
+                },
+                "border": {
+                    "borders_and_dividers_color": "#252830"
+                }
+            }
+        }
+    },
+    "chat": {
+        "welcomeMessage": "Hi — I'm Smriti. Ask about pipeline metrics, document templates, failures, or run analytics on ingested files.",
+        "sessionCompletedDescription": "This session has ended. You can close this window or refresh to start a new conversation.",
+        "sessionCompletedCtaEnabled": true,
+        "sessionCompletedCtaLabel": "Smriti docs",
+        "sessionCompletedCtaUrl": "https://github.com/satnam-sandhu/smriti",
+        "sessionCompletedCtaColor": "#FFFFFF",
+        "placeholder": "Ask about documents, metrics, or pipeline status…",
+        "maxMessageLength": 4000,
+        "enableImageUpload": false,
+        "enableVoiceInput": false,
+        "contextMaxTokens": 50000,
+        "sessionCompletedCtaBackground": "",
+        "suggestedPrompts": [
+            "Show pipeline metrics",
+            "List document templates",
+            "List quarantined failures",
+            "Install the finance plugin"
+        ]
+    },
+    "features": {
+        "showPrompts": true,
+        "showResources": true,
+        "showTools": true
+    },
+    "systemPrompt": "You are Smriti, an enterprise document ingestion assistant. Use MCP tools to answer questions about pipeline metrics, templates, plugins, failures, and analytics. Prefer calling tools over guessing.",
+    "standaloneMode": {
+        "headerText": "Smriti",
+        "headerSubText": "Document intelligence powered by MCP",
+        "headerSubTextColor": "rgba(0, 0, 0, 0.7)",
+        "chatbotLogo": "/smriti-logo.svg",
+        "welcomeText": "Ask about your document pipeline or try a suggested prompt.",
+        "headerTextStyle": {
+            "fontSize": "20px",
+            "fontWeight": "600"
+        },
+        "headerSubTextStyle": {
+            "fontSize": "13px",
+            "fontWeight": "400"
+        }
+    }
+}

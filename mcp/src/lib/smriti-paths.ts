@@ -6,10 +6,16 @@ import { spawnSync } from 'node:child_process';
 import { GOLD_GLOB, GOLD_PARTITION } from './constants.js';
 
 const BRIDGE_DIR = dirname(fileURLToPath(import.meta.url));
+/** `mcp/` package root — stable anchor for monorepo path resolution. */
+const MCP_DIR = resolve(BRIDGE_DIR, '../..');
 
 function resolveSmritiRoot(): string {
-  if (process.env.SMRITI_ROOT) return resolve(process.env.SMRITI_ROOT);
+  if (process.env.SMRITI_ROOT) {
+    const root = process.env.SMRITI_ROOT.trim();
+    return root.startsWith('/') ? resolve(root) : resolve(MCP_DIR, root);
+  }
   const candidates = [
+    resolve(MCP_DIR, '..'),
     resolve(BRIDGE_DIR, '../../..'),
     resolve(BRIDGE_DIR, '../..'),
     resolve(process.cwd()),
@@ -18,14 +24,23 @@ function resolveSmritiRoot(): string {
   for (const c of candidates) {
     if (existsSync(join(c, 'parser/mcp_bridge.py'))) return c;
   }
-  return resolve(BRIDGE_DIR, '../../..');
+  return resolve(MCP_DIR, '..');
 }
 
 export const SMRITI_ROOT = resolveSmritiRoot();
 
-export const WORKSPACE = process.env.SMRITI_WORKSPACE
-  ? resolve(process.env.SMRITI_WORKSPACE)
-  : join(SMRITI_ROOT, 'data');
+function resolveWorkspace(): string {
+  if (process.env.SMRITI_WORKSPACE) {
+    const ws = process.env.SMRITI_WORKSPACE.trim();
+    if (ws.startsWith('/')) return resolve(ws);
+    // Legacy mcp/.env used ../data relative to mcp/
+    if (ws.startsWith('..')) return resolve(MCP_DIR, ws);
+    return resolve(SMRITI_ROOT, ws);
+  }
+  return join(SMRITI_ROOT, 'data');
+}
+
+export const WORKSPACE = resolveWorkspace();
 
 export function bronzeDir() {
   return join(WORKSPACE, 'bronze');

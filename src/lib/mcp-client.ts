@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { cleanMcpErrorMessage, formatMcpResponse } from "./mcp-format";
 
 export interface McpTool {
   name: string;
@@ -20,16 +21,16 @@ type JsonRpcMessage = {
   error?: { message: string };
 };
 
-function parseHost(serverUrl: string): string {
-  return new URL(serverUrl).hostname;
-}
-
 function baseUrl(serverUrl: string): string {
   return serverUrl.replace(/\/$/, "");
 }
 
-async function mcpPost(host: string, path: string, body: unknown): Promise<void> {
-  const res = await fetch(`https://${host}${path}`, {
+function messageUrl(serverUrl: string, path: string): string {
+  return path.startsWith("http") ? path : `${baseUrl(serverUrl)}${path}`;
+}
+
+async function mcpPost(serverUrl: string, path: string, body: unknown): Promise<void> {
+  const res = await fetch(messageUrl(serverUrl, path), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -70,9 +71,8 @@ function waitForId(messages: JsonRpcMessage[], id: number, ms = 30000): Promise<
 
 async function withMcpSessionBrowser<T>(
   serverUrl: string,
-  run: (ctx: { host: string; endpoint: string; messages: JsonRpcMessage[] }) => Promise<T>,
+  run: (ctx: { endpoint: string; messages: JsonRpcMessage[] }) => Promise<T>,
 ): Promise<T> {
-  const host = parseHost(serverUrl);
   const messages: JsonRpcMessage[] = [];
   const abort = new AbortController();
 
@@ -125,7 +125,7 @@ async function withMcpSessionBrowser<T>(
 
   const ep = await endpointReady;
 
-  await mcpPost(host, ep, {
+  await mcpPost(serverUrl, ep, {
     jsonrpc: "2.0",
     id: 1,
     method: "initialize",
@@ -135,14 +135,14 @@ async function withMcpSessionBrowser<T>(
       clientInfo: { name: "smriti-desktop", version: "1.0" },
     },
   });
-  await mcpPost(host, ep, {
+  await mcpPost(serverUrl, ep, {
     jsonrpc: "2.0",
     method: "notifications/initialized",
     params: {},
   });
 
   try {
-    return await run({ host, endpoint: ep, messages });
+    return await run({ endpoint: ep, messages });
   } finally {
     abort.abort();
     void reader.cancel();
@@ -150,9 +150,9 @@ async function withMcpSessionBrowser<T>(
 }
 
 async function listMcpToolsBrowser(serverUrl: string): Promise<McpTool[]> {
-  return withMcpSessionBrowser(serverUrl, async ({ host, endpoint, messages }) => {
+  return withMcpSessionBrowser(serverUrl, async ({ endpoint, messages }) => {
     const reqId = 2;
-    await mcpPost(host, endpoint, {
+    await mcpPost(serverUrl, endpoint, {
       jsonrpc: "2.0",
       id: reqId,
       method: "tools/list",
@@ -168,21 +168,21 @@ async function callMcpToolBrowser(
   name: string,
   args: Record<string, unknown> = {},
 ): Promise<string> {
-  return withMcpSessionBrowser(serverUrl, async ({ host, endpoint, messages }) => {
+  return withMcpSessionBrowser(serverUrl, async ({ endpoint, messages }) => {
     const reqId = 3;
-    await mcpPost(host, endpoint, {
+    await mcpPost(serverUrl, endpoint, {
       jsonrpc: "2.0",
       id: reqId,
       method: "tools/call",
       params: { name, arguments: args },
     });
     const msg = await waitForId(messages, reqId, 45000);
-    if (msg.error) throw new Error(msg.error.message);
+    if (msg.error) throw new Error(cleanMcpErrorMessage(msg.error.message));
     if (msg.result?.isError) {
-      throw new Error(msg.result.content?.[0]?.text ?? "Tool failed");
+      throw new Error(cleanMcpErrorMessage(msg.result.content?.[0]?.text ?? "Tool failed"));
     }
     const text = (msg.result?.content ?? []).map((p) => p.text ?? "").join("\n").trim();
-    return text || JSON.stringify(msg.result, null, 2);
+    return formatMcpResponse(text || JSON.stringify(msg.result, null, 2));
   });
 }
 
@@ -198,10 +198,16 @@ export async function callMcpTool(
   name: string,
   args: Record<string, unknown> = {},
 ): Promise<string> {
-  if (isTauri()) {
-    return invoke<string>("mcp_call_tool", { serverUrl, name, args });
+  try {
+    if (isTauri()) {
+      const raw = await invoke<string>("mcp_call_tool", { serverUrl, name, args });
+      return formatMcpResponse(raw);
+    }
+    return await callMcpToolBrowser(serverUrl, name, args);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(cleanMcpErrorMessage(msg));
   }
-  return callMcpToolBrowser(serverUrl, name, args);
 }
 
 export async function pingMcpServer(serverUrl: string): Promise<boolean> {

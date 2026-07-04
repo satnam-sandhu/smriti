@@ -196,7 +196,7 @@ pub async fn call_tool(base: &str, name: &str, args: Value) -> Result<String, St
     .await?;
 
     if let Some(err) = msg.get("error").and_then(|e| e.get("message")).and_then(|m| m.as_str()) {
-        return Err(err.to_string());
+        return Err(clean_tool_error(err));
     }
 
     let result = msg.get("result").ok_or("Empty MCP tool result")?;
@@ -205,12 +205,35 @@ pub async fn call_tool(base: &str, name: &str, args: Value) -> Result<String, St
             .pointer("/content/0/text")
             .and_then(|t| t.as_str())
             .unwrap_or("Tool failed");
-        return Err(text.to_string());
+        return Err(clean_tool_error(text));
     }
 
     if let Some(text) = result.pointer("/content/0/text").and_then(|t| t.as_str()) {
-        return Ok(text.to_string());
+        return Ok(format_tool_text(text));
     }
 
-    Ok(result.to_string())
+    Ok(format_tool_text(&result.to_string()))
+}
+
+fn clean_tool_error(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if let Some(rest) = trimmed.strip_prefix("Error executing tool ") {
+        if let Some(idx) = rest.find("': ") {
+            return rest[idx + 3..].trim().to_string();
+        }
+    }
+    trimmed.strip_prefix("Error: ").unwrap_or(trimmed).trim().to_string()
+}
+
+fn format_tool_text(text: &str) -> String {
+    let trimmed = text.trim();
+    if trimmed.is_empty() {
+        return "(empty response)".to_string();
+    }
+    if let Ok(value) = serde_json::from_str::<Value>(trimmed) {
+        if let Ok(pretty) = serde_json::to_string_pretty(&value) {
+            return pretty;
+        }
+    }
+    trimmed.to_string()
 }

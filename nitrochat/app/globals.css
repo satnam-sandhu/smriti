@@ -1,0 +1,210 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+ * Base palette (light surface — root default).
+ * `theme_version_2.mode` toggles the `.dark` class on <html>; uncustomized
+ * surfaces follow these variables. `advanced_customization` overrides are
+ * applied at runtime by `applyRuntimeThemeToRoot` (lib/theme-runtime.ts).
+ * ------------------------------------------------------------------------- */
+:root {
+  /* Brand */
+  --color-primary: #ffe500;
+  --color-secondary: #8b5cf6;
+  --color-accent: #ffe500;
+  --color-primary-foreground: #000000;
+
+  /* Light surface baseline */
+  --color-background: #ffffff;
+  --color-foreground: #1a1a1a;
+  --color-sidebar: #f5f5f5;
+  --color-card: #ffffff;
+  --color-border: #e5e5e5;
+  --color-muted: #6b7280;
+  --color-muted-foreground: rgba(0, 0, 0, 0.6);
+
+  /* Status */
+  --color-error: #ef4444;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+
+  /* theme_version_2 → advanced_customization defaults (light) */
+  --color-header-bg: var(--color-primary);
+  --color-header-text: #000000;
+  --color-header-subtext: rgba(0, 0, 0, 0.7);
+  --color-chat-area-bg: var(--color-background);
+  --color-input-bg: var(--color-card);
+  --color-input-text: var(--color-foreground);
+  --color-input-placeholder: rgba(0, 0, 0, 0.45);
+  --color-input-border: var(--color-border);
+  --color-input-send-bg: #000000;
+  --color-input-send-icon: #ffffff;
+  --color-ai-bubble-bg: #f5f5f5;
+  --color-ai-bubble-text: #1a1a1a;
+  --color-user-bubble-bg: var(--color-primary);
+  --color-user-bubble-text: #000000;
+  --color-alert-bg: var(--color-card);
+  --color-alert-text: var(--color-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+ * Dark surface overrides — applied when <html> has `.dark` class, which
+ * `applyRuntimeThemeToRoot` toggles based on resolved `mode`.
+ * ------------------------------------------------------------------------- */
+:root.dark,
+.dark {
+  --color-primary-foreground: #000000;
+
+  --color-background: #000000;
+  --color-foreground: #ECECEC;
+  --color-sidebar: #0a0a0a;
+  --color-card: #1a1a1a;
+  --color-border: #2a2a2a;
+  --color-muted: #B4B4B4;
+  --color-muted-foreground: rgba(255, 255, 255, 0.6);
+  --color-secondary: #8E8EA0;
+
+  --color-header-bg: var(--color-primary);
+  --color-header-text: #000000;
+  --color-header-subtext: rgba(0, 0, 0, 0.7);
+  --color-chat-area-bg: var(--color-background);
+  --color-input-bg: var(--color-card);
+  --color-input-text: var(--color-foreground);
+  --color-input-placeholder: rgba(255, 255, 255, 0.5);
+  --color-input-border: var(--color-border);
+  --color-input-send-bg: var(--color-card);
+  --color-input-send-icon: var(--color-foreground);
+  --color-ai-bubble-bg: var(--color-card);
+  --color-ai-bubble-text: var(--color-foreground);
+  --color-user-bubble-bg: var(--color-primary);
+  --color-user-bubble-text: #000000;
+  --color-alert-bg: var(--color-card);
+  --color-alert-text: var(--color-foreground);
+}
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  /* Enhanced Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+    background-clip: padding-box;
+  }
+}
+
+@layer components {
+
+  /* Button Styles */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:opacity-90 focus:ring-primary;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent hover:bg-white/5 text-muted hover:text-foreground;
+  }
+
+  /* Glass Utilities - Theme Aware */
+  .glass-panel {
+    @apply bg-card border border-border shadow-sm;
+  }
+
+  .glass-input {
+    @apply bg-card border border-border focus:border-border/50 transition-colors;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Glass morphism utility */
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+/* Three dots loading indicator - opacity only */
+.animate-dot-opacity {
+  animation: dotOpacity 1.4s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes dotOpacity {
+  0%, 60%, 100% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+/* Three dots loading indicator - bounce one by one */
+.animate-dot-bounce {
+  animation: dotBounce 900ms ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes dotBounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-dot-bounce {
+    animation: none;
+    opacity: 0.75;
+  }
+}

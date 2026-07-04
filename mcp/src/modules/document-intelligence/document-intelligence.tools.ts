@@ -6,6 +6,27 @@ import {
 } from '@nitrostack/core';
 import { DocumentIntelligenceService } from './document-intelligence.service.js';
 
+function pickArg(input: Record<string, unknown>, ...keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = input[key];
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed && trimmed !== 'undefined' && trimmed !== 'null') return trimmed;
+    }
+  }
+  return undefined;
+}
+
+function requireDocumentId(input: Record<string, unknown>): string {
+  const documentId = pickArg(input, 'documentId', 'document_id', 'id');
+  if (!documentId) {
+    throw new Error(
+      'documentId is required. Call upload_document first and pass the returned documentId, or use search_documents to find one.',
+    );
+  }
+  return documentId;
+}
+
 @Injectable({ deps: [DocumentIntelligenceService] })
 export class DocumentIntelligenceTools {
   constructor(private diService: DocumentIntelligenceService) {}
@@ -194,14 +215,30 @@ export class DocumentIntelligenceTools {
   @Tool({
     name: 'classify_document',
     description:
-      'Identify document type, industry, and classification confidence',
+      'Identify document type, industry, and classification confidence. Requires documentId from upload_document/search_documents, or file_path for a file on disk.',
     inputSchema: z.object({
-      documentId: z.string().describe('The unique document ID'),
+      documentId: z
+        .string()
+        .optional()
+        .describe('Document ID returned by upload_document or search_documents'),
+      file_path: z
+        .string()
+        .optional()
+        .describe('Absolute path to classify when no documentId is available'),
     }),
   })
-  async classifyDocument(input: { documentId: string }, ctx: ExecutionContext) {
-    ctx.logger.info('classify_document', { documentId: input.documentId });
-    return this.diService.classifyDocument(input.documentId);
+  async classifyDocument(input: Record<string, unknown>, ctx: ExecutionContext) {
+    const filePath = pickArg(input, 'file_path', 'filePath', 'path');
+    const documentId = pickArg(input, 'documentId', 'document_id', 'id');
+    ctx.logger.info('classify_document', { documentId, file_path: filePath });
+
+    if (filePath) return this.diService.classifyByPath(filePath);
+    if (!documentId) {
+      throw new Error(
+        'Provide documentId (from upload_document) or file_path to classify a document.',
+      );
+    }
+    return this.diService.classifyDocument(documentId);
   }
 
   @Tool({
@@ -212,9 +249,10 @@ export class DocumentIntelligenceTools {
       documentId: z.string().describe('The unique document ID to process'),
     }),
   })
-  async processDocument(input: { documentId: string }, ctx: ExecutionContext) {
-    ctx.logger.info('process_document', { documentId: input.documentId });
-    const record = this.diService.processDocument(input.documentId);
+  async processDocument(input: Record<string, unknown>, ctx: ExecutionContext) {
+    const documentId = requireDocumentId(input);
+    ctx.logger.info('process_document', { documentId });
+    const record = this.diService.processDocument(documentId);
     return {
       documentId: record.documentId,
       templateId: record.templateId,
@@ -252,10 +290,11 @@ export class DocumentIntelligenceTools {
       documentId: z.string().describe('The unique document ID'),
     }),
   })
-  async getDocument(input: { documentId: string }, ctx: ExecutionContext) {
-    ctx.logger.info('get_document', { documentId: input.documentId });
-    const doc = this.diService.getDocument(input.documentId);
-    if (!doc) throw new Error(`Document not found: ${input.documentId}`);
+  async getDocument(input: Record<string, unknown>, ctx: ExecutionContext) {
+    const documentId = requireDocumentId(input);
+    ctx.logger.info('get_document', { documentId });
+    const doc = this.diService.getDocument(documentId);
+    if (!doc) throw new Error(`Document not found: ${documentId}`);
     return {
       documentId: doc.documentId,
       metadata: doc.metadata,

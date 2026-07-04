@@ -534,6 +534,16 @@ a,
   border-color: transparent;
   color: var(--text-secondary);
 }
+.chatbot-msg-error .chatbot-msg-body {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+.chatbot-msg-hint .chatbot-msg-body {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: var(--text-secondary);
+}
 .chatbot-typing {
   display: flex;
   align-items: center;
