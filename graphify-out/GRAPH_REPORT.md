@@ -1,16 +1,16 @@
 # Graph Report - smriti  (2026-07-04)
 
 ## Corpus Check
-- 80 files · ~102,097 words
+- 80 files · ~102,350 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 799 nodes · 1363 edges · 63 communities (57 shown, 6 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 52 edges (avg confidence: 0.8)
+- 804 nodes · 1383 edges · 63 communities (56 shown, 7 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 54 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `11d343db`
+- Built from commit: `699ecd81`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -72,10 +72,10 @@
 
 ## God Nodes (most connected - your core abstractions)
 1. `DocumentIntelligenceService` - 32 edges
-2. `with_db()` - 25 edges
-3. `String` - 25 edges
-4. `Result` - 24 edges
-5. `AppHandle` - 22 edges
+2. `with_db()` - 26 edges
+3. `String` - 26 edges
+4. `Result` - 25 edges
+5. `AppHandle` - 23 edges
 6. `runMcpBridge()` - 18 edges
 7. `DocumentIntelligenceTools` - 18 edges
 8. `compilerOptions` - 18 edges
@@ -98,7 +98,7 @@
 - 1-file cycle: `src-tauri/src/db.rs -> src-tauri/src/db.rs`
 - 1-file cycle: `src-tauri/src/pipeline.rs -> src-tauri/src/pipeline.rs`
 
-## Communities (63 total, 6 thin omitted)
+## Communities (63 total, 7 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.05
@@ -106,7 +106,7 @@ Nodes (36): 15-Minute Demo Script, Accuracy Measurement, Accuracy & Validation, 
 
 ### Community 1 - "Community 1"
 Cohesion: 0.12
-Nodes (58): F, ParserOutput, with_db(), emit_metrics(), build_failed_review(), build_table_from_silver(), call_python_parser(), canonical_path_str() (+50 more)
+Nodes (59): F, ParserOutput, with_db(), emit_metrics(), build_failed_review(), build_table_from_silver(), call_python_parser(), canonical_path_str() (+51 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.06
@@ -169,8 +169,8 @@ Cohesion: 0.14
 Nodes (13): 2:00–2:30 — Scaffold + contract, 2:30–3:30 — Ingest + Bronze, 3:30–4:30 — Silver + Gold (happy path), 4:30–5:15 — Commands for UI + demo, 5:15–5:45 — Integration + failure test, 5:45–6:00 — Demo standby, Do NOT build, Done by 6 PM (+5 more)
 
 ### Community 18 - "Community 18"
-Cohesion: 0.21
-Nodes (4): DocumentIntelligenceService, validationFromSilver(), runMcpBridge(), silverDir()
+Cohesion: 0.23
+Nodes (3): DocumentIntelligenceService, validationFromSilver(), runMcpBridge()
 
 ### Community 19 - "Community 19"
 Cohesion: 0.26
@@ -205,8 +205,8 @@ Cohesion: 0.50
 Nodes (3): generatedAt, version, widgets
 
 ### Community 30 - "Community 30"
-Cohesion: 0.53
-Nodes (5): apply_union_by_name(), main(), Mixed doc types produce different Parquet schemas — union columns across files., register_gold_view(), run_query()
+Cohesion: 0.31
+Nodes (9): apply_union_by_name(), ensure_union_by_name(), main(), Turn workspace-relative gold paths into absolute paths for DuckDB., Mixed doc types produce different Parquet schemas — union columns across files., Legacy helper: also patch exact GOLD_GLOB token replacements., register_gold_view(), resolve_workspace_paths() (+1 more)
 
 ### Community 32 - "Community 32"
 Cohesion: 0.33
@@ -225,24 +225,20 @@ Cohesion: 0.20
 Nodes (10): method, pattern, company_name, fiscal_period, report_type, method, pattern, fields (+2 more)
 
 ### Community 44 - "Community 44"
-Cohesion: 0.43
-Nodes (5): bronzeDir(), ensureWorkspaceDirs(), ingestBase64ToBronze(), ingestToBronze(), quarantineDir()
+Cohesion: 0.20
+Nodes (10): DocumentRecord, PluginRecord, TemplateRecord, bronzeDir(), ensureWorkspaceDirs(), ingestBase64ToBronze(), ingestToBronze(), quarantineDir() (+2 more)
 
 ### Community 47 - "Community 47"
 Cohesion: 0.12
 Nodes (15): CollectionTable(), CollectionTableProps, PreviewState, AnalyticsQueryResult, Collection, ErrorBreakdown, ErrorCode, FileDetail (+7 more)
 
 ### Community 48 - "Community 48"
-Cohesion: 0.15
-Nodes (11): ACTIVE_PLUGIN, BRIDGE_DIR, bridgeEnv(), goldGlob(), metricsPath(), ParserResult, readMetricsFile(), runAnalytics() (+3 more)
+Cohesion: 0.17
+Nodes (10): ACTIVE_PLUGIN, BRIDGE_DIR, bridgeEnv(), goldGlob(), metricsPath(), ParserResult, readMetricsFile(), runAnalytics() (+2 more)
 
 ### Community 49 - "Community 49"
 Cohesion: 0.15
 Nodes (10): BackIcon(), ChevronIcon(), CollectionsIcon(), ReviewIcon(), SmritiLogo(), SmritiLogoProps, SqlPanel(), SqlPanelProps (+2 more)
-
-### Community 50 - "Community 50"
-Cohesion: 0.28
-Nodes (3): DocumentIntelligenceModule, SystemHealthCheck, AppModule
 
 ### Community 52 - "Community 52"
 Cohesion: 0.19
@@ -285,8 +281,8 @@ Cohesion: 0.38
 Nodes (5): MetricCard(), MetricCardProps, MetricsDashboard(), MetricsDashboardProps, PipelineMetrics
 
 ### Community 62 - "Community 62"
-Cohesion: 0.13
-Nodes (5): DocumentIntelligencePrompts, DocumentIntelligenceResources, DocumentRecord, PluginRecord, TemplateRecord
+Cohesion: 0.15
+Nodes (3): DocumentIntelligenceModule, DocumentIntelligencePrompts, DocumentIntelligenceResources
 
 ### Community 63 - "Community 63"
 Cohesion: 0.67
@@ -295,7 +291,7 @@ Nodes (3): revenue, method, pattern
 ## Knowledge Gaps
 - **335 isolated node(s):** `name`, `version`, `private`, `type`, `description` (+330 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -304,13 +300,13 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
 - **Why does `with_db()` connect `Community 1` to `Community 3`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
-- **Why does `DocumentIntelligenceTools` connect `Community 10` to `Community 62`?**
+- **Why does `DocumentIntelligenceTools` connect `Community 10` to `Community 44`, `Community 62`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
-- **Are the 19 inferred relationships involving `with_db()` (e.g. with `build_table_from_silver()` and `create_collection()`) actually correct?**
-  _`with_db()` has 19 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 20 inferred relationships involving `with_db()` (e.g. with `build_table_from_silver()` and `create_collection()`) actually correct?**
+  _`with_db()` has 20 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `name`, `version`, `private` to the rest of the system?**
-  _338 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _340 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.05405405405405406 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.1180327868852459 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12057112638815441 - nodes in this community are weakly interconnected._

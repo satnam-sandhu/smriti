@@ -380,7 +380,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "lib_smriti_bridge_silverdir",
-      "community": 18,
+      "community": 44,
       "norm_label": "silverdir()"
     },
     {
@@ -497,7 +497,7 @@
       "label": "ingestToBronze()",
       "file_type": "code",
       "source_file": "mcp/src/lib/smriti-bridge.ts",
-      "source_location": "L140",
+      "source_location": "L142",
       "_origin": "ast",
       "id": "lib_smriti_bridge_ingesttobronze",
       "community": 44,
@@ -507,7 +507,7 @@
       "label": "ingestBase64ToBronze()",
       "file_type": "code",
       "source_file": "mcp/src/lib/smriti-bridge.ts",
-      "source_location": "L153",
+      "source_location": "L155",
       "_origin": "ast",
       "id": "lib_smriti_bridge_ingestbase64tobronze",
       "community": 44,
@@ -517,17 +517,17 @@
       "label": "walkSupportedFiles()",
       "file_type": "code",
       "source_file": "mcp/src/lib/smriti-bridge.ts",
-      "source_location": "L165",
+      "source_location": "L167",
       "_origin": "ast",
       "id": "lib_smriti_bridge_walksupportedfiles",
-      "community": 48,
+      "community": 44,
       "norm_label": "walksupportedfiles()"
     },
     {
       "label": "readMetricsFile()",
       "file_type": "code",
       "source_file": "mcp/src/lib/smriti-bridge.ts",
-      "source_location": "L181",
+      "source_location": "L183",
       "_origin": "ast",
       "id": "lib_smriti_bridge_readmetricsfile",
       "community": 48,
@@ -550,7 +550,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "document_intelligence_document_intelligence_module_documentintelligencemodule",
-      "community": 50,
+      "community": 62,
       "norm_label": "documentintelligencemodule"
     },
     {
@@ -690,7 +690,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "document_intelligence_document_intelligence_service",
-      "community": 62,
+      "community": 44,
       "norm_label": "document-intelligence.service.ts"
     },
     {
@@ -700,7 +700,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "document_intelligence_document_intelligence_service_documentrecord",
-      "community": 62,
+      "community": 44,
       "norm_label": "documentrecord"
     },
     {
@@ -710,7 +710,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "document_intelligence_document_intelligence_service_templaterecord",
-      "community": 62,
+      "community": 44,
       "norm_label": "templaterecord"
     },
     {
@@ -720,7 +720,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "document_intelligence_document_intelligence_service_pluginrecord",
-      "community": 62,
+      "community": 44,
       "norm_label": "pluginrecord"
     },
     {
@@ -750,7 +750,7 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "document_intelligence_document_intelligence_service_documentintelligenceservice_writesilver",
-      "community": 18,
+      "community": 44,
       "norm_label": ".writesilver()"
     },
     {
@@ -830,7 +830,7 @@
       "source_location": "L253",
       "_origin": "ast",
       "id": "document_intelligence_document_intelligence_service_documentintelligenceservice_uploadfolder",
-      "community": 48,
+      "community": 44,
       "norm_label": ".uploadfolder()"
     },
     {
@@ -990,7 +990,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "document_intelligence_document_intelligence_tools",
-      "community": 62,
+      "community": 44,
       "norm_label": "document-intelligence.tools.ts"
     },
     {
@@ -2214,30 +2214,50 @@
       "norm_label": "analytics.py"
     },
     {
-      "label": "register_gold_view()",
+      "label": "resolve_workspace_paths()",
       "file_type": "code",
       "source_file": "parser/analytics.py",
-      "source_location": "L15",
+      "source_location": "L20",
       "_origin": "ast",
-      "id": "parser_analytics_register_gold_view",
+      "id": "parser_analytics_resolve_workspace_paths",
       "community": 30,
-      "norm_label": "register_gold_view()"
+      "norm_label": "resolve_workspace_paths()"
+    },
+    {
+      "label": "ensure_union_by_name()",
+      "file_type": "code",
+      "source_file": "parser/analytics.py",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "parser_analytics_ensure_union_by_name",
+      "community": 30,
+      "norm_label": "ensure_union_by_name()"
     },
     {
       "label": "apply_union_by_name()",
       "file_type": "code",
       "source_file": "parser/analytics.py",
-      "source_location": "L28",
+      "source_location": "L56",
       "_origin": "ast",
       "id": "parser_analytics_apply_union_by_name",
       "community": 30,
       "norm_label": "apply_union_by_name()"
     },
     {
+      "label": "register_gold_view()",
+      "file_type": "code",
+      "source_file": "parser/analytics.py",
+      "source_location": "L67",
+      "_origin": "ast",
+      "id": "parser_analytics_register_gold_view",
+      "community": 30,
+      "norm_label": "register_gold_view()"
+    },
+    {
       "label": "run_query()",
       "file_type": "code",
       "source_file": "parser/analytics.py",
-      "source_location": "L38",
+      "source_location": "L80",
       "_origin": "ast",
       "id": "parser_analytics_run_query",
       "community": 30,
@@ -2247,21 +2267,41 @@
       "label": "main()",
       "file_type": "code",
       "source_file": "parser/analytics.py",
-      "source_location": "L55",
+      "source_location": "L103",
       "_origin": "ast",
       "id": "parser_analytics_main",
       "community": 30,
       "norm_label": "main()"
     },
     {
+      "label": "Turn workspace-relative gold paths into absolute paths for DuckDB.",
+      "file_type": "rationale",
+      "source_file": "parser/analytics.py",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "parser_analytics_rationale_21",
+      "community": 30,
+      "norm_label": "turn workspace-relative gold paths into absolute paths for duckdb."
+    },
+    {
       "label": "Mixed doc types produce different Parquet schemas \u2014 union columns across files.",
       "file_type": "rationale",
       "source_file": "parser/analytics.py",
-      "source_location": "L29",
+      "source_location": "L41",
       "_origin": "ast",
-      "id": "parser_analytics_rationale_29",
+      "id": "parser_analytics_rationale_41",
       "community": 30,
       "norm_label": "mixed doc types produce different parquet schemas \u2014 union columns across files."
+    },
+    {
+      "label": "Legacy helper: also patch exact GOLD_GLOB token replacements.",
+      "file_type": "rationale",
+      "source_file": "parser/analytics.py",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "parser_analytics_rationale_57",
+      "community": 30,
+      "norm_label": "legacy helper: also patch exact gold_glob token replacements."
     },
     {
       "label": "cli.py",
@@ -5105,7 +5145,7 @@
       "label": "ingest_files()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L222",
+      "source_location": "L224",
       "_origin": "ast",
       "id": "src_pipeline_ingest_files",
       "community": 1,
@@ -5115,7 +5155,7 @@
       "label": "process_batch()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L288",
+      "source_location": "L290",
       "_origin": "ast",
       "id": "src_pipeline_process_batch",
       "community": 1,
@@ -5125,7 +5165,7 @@
       "label": "ProcessError",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L339",
+      "source_location": "L341",
       "_origin": "ast",
       "id": "src_pipeline_processerror",
       "community": 1,
@@ -5135,7 +5175,7 @@
       "label": "process_single_file()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L344",
+      "source_location": "L346",
       "_origin": "ast",
       "id": "src_pipeline_process_single_file",
       "community": 1,
@@ -5145,7 +5185,7 @@
       "label": "call_python_parser()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L413",
+      "source_location": "L415",
       "_origin": "ast",
       "id": "src_pipeline_call_python_parser",
       "community": 1,
@@ -5155,7 +5195,7 @@
       "label": "ParserOutput",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L413",
+      "source_location": "L415",
       "_origin": "ast",
       "id": "parseroutput",
       "community": 1,
@@ -5165,7 +5205,7 @@
       "label": "write_gold_parquet()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L463",
+      "source_location": "L465",
       "_origin": "ast",
       "id": "src_pipeline_write_gold_parquet",
       "community": 1,
@@ -5175,7 +5215,7 @@
       "label": "Value",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L463",
+      "source_location": "L465",
       "_origin": "ast",
       "id": "src_tauri_src_pipeline_rs_value",
       "community": 1,
@@ -5185,7 +5225,7 @@
       "label": "ParserPath",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L463",
+      "source_location": "L465",
       "_origin": "ast",
       "id": "src_tauri_src_pipeline_rs_parserpath",
       "community": 1,
@@ -5195,7 +5235,7 @@
       "label": "is_likely_corrupt()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L539",
+      "source_location": "L541",
       "_origin": "ast",
       "id": "src_pipeline_is_likely_corrupt",
       "community": 1,
@@ -5205,7 +5245,7 @@
       "label": "quarantine_file()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L557",
+      "source_location": "L559",
       "_origin": "ast",
       "id": "src_pipeline_quarantine_file",
       "community": 1,
@@ -5215,7 +5255,7 @@
       "label": "get_metrics()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L586",
+      "source_location": "L588",
       "_origin": "ast",
       "id": "src_pipeline_get_metrics",
       "community": 1,
@@ -5225,7 +5265,7 @@
       "label": "PipelineMetrics",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L586",
+      "source_location": "L588",
       "_origin": "ast",
       "id": "src_tauri_src_pipeline_rs_pipelinemetrics",
       "community": 1,
@@ -5235,7 +5275,7 @@
       "label": "get_pipeline_stats()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L590",
+      "source_location": "L592",
       "_origin": "ast",
       "id": "src_pipeline_get_pipeline_stats",
       "community": 1,
@@ -5245,7 +5285,7 @@
       "label": "PipelineStats",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L590",
+      "source_location": "L592",
       "_origin": "ast",
       "id": "src_tauri_src_pipeline_rs_pipelinestats",
       "community": 1,
@@ -5255,7 +5295,7 @@
       "label": "export_metrics_json()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L612",
+      "source_location": "L614",
       "_origin": "ast",
       "id": "src_pipeline_export_metrics_json",
       "community": 1,
@@ -5265,7 +5305,7 @@
       "label": "get_file_detail()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L620",
+      "source_location": "L622",
       "_origin": "ast",
       "id": "src_pipeline_get_file_detail",
       "community": 1,
@@ -5275,7 +5315,7 @@
       "label": "FileDetail",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L620",
+      "source_location": "L622",
       "_origin": "ast",
       "id": "src_tauri_src_pipeline_rs_filedetail",
       "community": 1,
@@ -5285,7 +5325,7 @@
       "label": "list_all_files()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L650",
+      "source_location": "L652",
       "_origin": "ast",
       "id": "src_pipeline_list_all_files",
       "community": 1,
@@ -5295,7 +5335,7 @@
       "label": "run_analytics_query()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L654",
+      "source_location": "L656",
       "_origin": "ast",
       "id": "src_pipeline_run_analytics_query",
       "community": 1,
@@ -5305,17 +5345,27 @@
       "label": "run_duckdb_query()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L663",
+      "source_location": "L677",
       "_origin": "ast",
       "id": "src_pipeline_run_duckdb_query",
       "community": 1,
       "norm_label": "run_duckdb_query()"
     },
     {
+      "label": "ensure_collection_gold_parquet()",
+      "file_type": "code",
+      "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L714",
+      "_origin": "ast",
+      "id": "src_pipeline_ensure_collection_gold_parquet",
+      "community": 1,
+      "norm_label": "ensure_collection_gold_parquet()"
+    },
+    {
       "label": "build_table_from_silver()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L698",
+      "source_location": "L743",
       "_origin": "ast",
       "id": "src_pipeline_build_table_from_silver",
       "community": 1,
@@ -5325,7 +5375,7 @@
       "label": "collection_gold_dir()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L749",
+      "source_location": "L794",
       "_origin": "ast",
       "id": "src_pipeline_collection_gold_dir",
       "community": 1,
@@ -5335,7 +5385,7 @@
       "label": "collection_gold_glob()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L756",
+      "source_location": "L801",
       "_origin": "ast",
       "id": "src_pipeline_collection_gold_glob",
       "community": 1,
@@ -5345,7 +5395,7 @@
       "label": "gold_glob_has_files()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L763",
+      "source_location": "L808",
       "_origin": "ast",
       "id": "src_pipeline_gold_glob_has_files",
       "community": 1,
@@ -5355,7 +5405,7 @@
       "label": "register_collection_duckdb()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L778",
+      "source_location": "L823",
       "_origin": "ast",
       "id": "src_pipeline_register_collection_duckdb",
       "community": 1,
@@ -5365,7 +5415,7 @@
       "label": "resolve_project_root()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L812",
+      "source_location": "L857",
       "_origin": "ast",
       "id": "src_pipeline_resolve_project_root",
       "community": 1,
@@ -5375,7 +5425,7 @@
       "label": "guess_mime()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L829",
+      "source_location": "L874",
       "_origin": "ast",
       "id": "src_pipeline_guess_mime",
       "community": 1,
@@ -5385,7 +5435,7 @@
       "label": "_hash_file()",
       "file_type": "code",
       "source_file": "src-tauri/src/pipeline.rs",
-      "source_location": "L847",
+      "source_location": "L892",
       "_origin": "ast",
       "id": "src_pipeline_hash_file",
       "community": 1,
@@ -6255,7 +6305,7 @@
       "label": "ResultsTable()",
       "file_type": "code",
       "source_file": "src/components/SqlPanel.tsx",
-      "source_location": "L10",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "components_sqlpanel_resultstable",
       "community": 49,
@@ -6265,7 +6315,7 @@
       "label": "formatCell()",
       "file_type": "code",
       "source_file": "src/components/SqlPanel.tsx",
-      "source_location": "L39",
+      "source_location": "L40",
       "_origin": "ast",
       "id": "components_sqlpanel_formatcell",
       "community": 49,
@@ -6275,7 +6325,7 @@
       "label": "SqlPanel()",
       "file_type": "code",
       "source_file": "src/components/SqlPanel.tsx",
-      "source_location": "L45",
+      "source_location": "L46",
       "_origin": "ast",
       "id": "components_sqlpanel_sqlpanel",
       "community": 49,
@@ -11073,6 +11123,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "parser/analytics.py",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "parser_analytics",
+      "target": "parser_analytics_ensure_union_by_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "parser/analytics.py",
       "source_location": "L11",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -11093,6 +11153,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "parser/analytics.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "parser_analytics",
+      "target": "parser_analytics_resolve_workspace_paths",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "parser/analytics.py",
       "source_location": "L28",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -11100,25 +11170,56 @@
       "target": "parser_analytics_run_query"
     },
     {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "parser/analytics.py",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "parser_analytics_rationale_21",
+      "target": "parser_analytics_resolve_workspace_paths",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "parser/analytics.py",
-      "source_location": "L57",
+      "source_location": "L87",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "parser_analytics_main",
-      "target": "parser_analytics_register_gold_view"
+      "source": "parser_analytics_run_query",
+      "target": "parser_analytics_resolve_workspace_paths",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "parser/analytics.py",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "parser_analytics_apply_union_by_name",
+      "target": "parser_analytics_ensure_union_by_name",
+      "confidence_score": 1.0
     },
     {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "parser/analytics.py",
-      "source_location": "L29",
+      "source_location": "L41",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "parser_analytics_rationale_29",
-      "target": "parser_analytics_apply_union_by_name"
+      "source": "parser_analytics_rationale_41",
+      "target": "parser_analytics_ensure_union_by_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "parser/analytics.py",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "parser_analytics_rationale_57",
+      "target": "parser_analytics_apply_union_by_name",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -11130,6 +11231,17 @@
       "confidence_score": 1.0,
       "source": "parser_analytics_run_query",
       "target": "parser_analytics_apply_union_by_name"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "parser/analytics.py",
+      "source_location": "L57",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "parser_analytics_main",
+      "target": "parser_analytics_register_gold_view"
     },
     {
       "relation": "calls",
@@ -14777,6 +14889,17 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/commands.rs",
+      "source_location": "L139",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "src_commands_run_analytics_query",
+      "target": "src_tauri_src_commands_rs_option",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/commands.rs",
       "source_location": "L7",
       "weight": 1.0,
       "context": "generic_arg",
@@ -15834,6 +15957,17 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L715",
+      "weight": 1.0,
+      "source": "src_pipeline_ensure_collection_gold_parquet",
+      "target": "src_db_with_db"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src-tauri/src/pipeline.rs",
       "source_location": "L301",
       "weight": 1.0,
       "source": "src_pipeline_export_metrics_json",
@@ -16376,6 +16510,17 @@
       "source_location": "L507",
       "weight": 1.0,
       "source": "src_pipeline_build_table_from_silver",
+      "target": "src_db_list_files_for_collection"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L715",
+      "weight": 1.0,
+      "source": "src_pipeline_ensure_collection_gold_parquet",
       "target": "src_db_list_files_for_collection"
     },
     {
@@ -17203,6 +17348,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L714",
+      "weight": 1.0,
+      "source": "src_pipeline",
+      "target": "src_pipeline_ensure_collection_gold_parquet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
       "source_location": "L300",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -17560,6 +17715,17 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L714",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "src_pipeline_ensure_collection_gold_parquet",
+      "target": "src_tauri_src_pipeline_rs_apphandle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
       "source_location": "L300",
       "weight": 1.0,
       "context": "parameter_type",
@@ -17797,6 +17963,17 @@
       "confidence_score": 1.0,
       "source": "src_pipeline_create_collection",
       "target": "src_tauri_src_pipeline_rs_result"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L714",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "src_pipeline_ensure_collection_gold_parquet",
+      "target": "src_tauri_src_pipeline_rs_result",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18061,6 +18238,17 @@
       "confidence_score": 1.0,
       "source": "src_pipeline_create_collection",
       "target": "src_tauri_src_pipeline_rs_string"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L714",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "source": "src_pipeline_ensure_collection_gold_parquet",
+      "target": "src_tauri_src_pipeline_rs_string",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18448,6 +18636,17 @@
       "target": "src_tauri_src_pipeline_rs_option"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L656",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "src_pipeline_run_analytics_query",
+      "target": "src_tauri_src_pipeline_rs_option",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -18567,6 +18766,17 @@
       "confidence_score": 1.0,
       "source": "src_pipeline_resolve_quarantine_path",
       "target": "src_tauri_src_pipeline_rs_pathbuf"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L677",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "src_pipeline_run_duckdb_query",
+      "target": "src_tauri_src_pipeline_rs_pathbuf",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -18826,6 +19036,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L210",
+      "weight": 1.0,
+      "source": "src_pipeline_get_collection_table",
+      "target": "src_pipeline_ensure_collection_gold_parquet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
       "source_location": "L59",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -19013,6 +19234,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L737",
+      "weight": 1.0,
+      "source": "src_pipeline_ensure_collection_gold_parquet",
+      "target": "src_pipeline_write_gold_parquet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
       "source_location": "L326",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -19112,6 +19344,28 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L667",
+      "weight": 1.0,
+      "source": "src_pipeline_run_analytics_query",
+      "target": "src_pipeline_collection_gold_glob",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L662",
+      "weight": 1.0,
+      "source": "src_pipeline_run_analytics_query",
+      "target": "src_pipeline_ensure_collection_gold_parquet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
       "source_location": "L333",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -19139,6 +19393,17 @@
       "confidence_score": 1.0,
       "source": "src_pipeline_run_duckdb_query",
       "target": "src_pipeline_resolve_project_root"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src-tauri/src/pipeline.rs",
+      "source_location": "L723",
+      "weight": 1.0,
+      "source": "src_pipeline_ensure_collection_gold_parquet",
+      "target": "src_pipeline_collection_gold_dir",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -20168,9 +20433,9 @@
       "source_file": "src/components/FailuresTable.tsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_failurestable",
-      "target": "components_pagination",
-      "confidence_score": 1.0
+      "target": "components_pagination"
     },
     {
       "relation": "imports",
@@ -20179,9 +20444,9 @@
       "source_file": "src/components/FailuresTable.tsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_failurestable",
-      "target": "components_pagination_pagination",
-      "confidence_score": 1.0
+      "target": "components_pagination_pagination"
     },
     {
       "relation": "imports_from",
@@ -20337,9 +20602,9 @@
       "source_file": "src/components/Pagination.tsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_pagination",
-      "target": "components_pagination_pagination",
-      "confidence_score": 1.0
+      "target": "components_pagination_pagination"
     },
     {
       "relation": "contains",
@@ -20347,9 +20612,9 @@
       "source_file": "src/components/Pagination.tsx",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_pagination",
-      "target": "components_pagination_paginationprops",
-      "confidence_score": 1.0
+      "target": "components_pagination_paginationprops"
     },
     {
       "relation": "imports_from",
@@ -20358,9 +20623,9 @@
       "source_file": "src/components/PipelineView.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_pipelineview",
-      "target": "components_pagination",
-      "confidence_score": 1.0
+      "target": "components_pagination"
     },
     {
       "relation": "imports",
@@ -20369,9 +20634,9 @@
       "source_file": "src/components/PipelineView.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_pipelineview",
-      "target": "components_pagination_pagination",
-      "confidence_score": 1.0
+      "target": "components_pagination_pagination"
     },
     {
       "relation": "contains",
@@ -22338,5 +22603,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "11d343db86d12bd66589228f8374b59e8f6c79cc"
+  "built_at_commit": "699ecd81ff3fbf6ab9a63c11e6d5eaaa0a4649d9"
 }

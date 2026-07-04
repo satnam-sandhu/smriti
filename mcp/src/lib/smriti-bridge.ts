@@ -128,6 +128,8 @@ export function runAnalytics(sql: string): {
       sql,
       '--gold-glob',
       goldGlob(),
+      '--workspace',
+      WORKSPACE,
     ],
     { encoding: 'utf-8', cwd: SMRITI_ROOT, env: bridgeEnv() },
   );

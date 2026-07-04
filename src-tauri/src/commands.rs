@@ -139,8 +139,11 @@ pub async fn list_files(app: tauri::AppHandle) -> Result<Vec<FileRecord>, String
 pub async fn run_analytics_query(
     app: tauri::AppHandle,
     sql: String,
+    collection_id: Option<String>,
 ) -> Result<AnalyticsQueryResult, String> {
-    tauri::async_runtime::spawn_blocking(move || pipeline::run_analytics_query(&app, sql))
-        .await
-        .map_err(|e| e.to_string())?
+    tauri::async_runtime::spawn_blocking(move || {
+        pipeline::run_analytics_query(&app, sql, collection_id)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }

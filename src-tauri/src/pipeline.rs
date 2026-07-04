@@ -207,6 +207,8 @@ pub fn get_collection_table(
     app: &AppHandle,
     collection_id: String,
 ) -> Result<AnalyticsQueryResult, String> {
+    ensure_collection_gold_parquet(app, &collection_id)?;
+
     let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
     let gold_dir = collection_gold_dir(&workspace, &collection_id);
 
@@ -216,7 +218,7 @@ pub fn get_collection_table(
 
     let gold_glob = collection_gold_glob(&workspace, &collection_id);
     let sql = format!("SELECT * FROM read_parquet('{gold_glob}')");
-    run_duckdb_query(app, &sql, &gold_glob)
+    run_duckdb_query(app, &sql, &gold_glob, &workspace)
 }
 
 pub fn ingest_files(
@@ -651,19 +653,32 @@ pub fn list_all_files(app: &AppHandle) -> Result<Vec<FileRecord>, String> {
     with_db(app, |conn, _| list_files(conn))
 }
 
-pub fn run_analytics_query(app: &AppHandle, sql: String) -> Result<AnalyticsQueryResult, String> {
+pub fn run_analytics_query(
+    app: &AppHandle,
+    sql: String,
+    collection_id: Option<String>,
+) -> Result<AnalyticsQueryResult, String> {
+    if let Some(ref collection_id) = collection_id {
+        ensure_collection_gold_parquet(app, collection_id)?;
+    }
+
     let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
-    let gold_glob = workspace
-        .join("gold/collections/*/*.parquet")
-        .to_string_lossy()
-        .to_string();
-    run_duckdb_query(app, &sql, &gold_glob)
+    let gold_glob = if let Some(ref collection_id) = collection_id {
+        collection_gold_glob(&workspace, collection_id)
+    } else {
+        workspace
+            .join("gold/collections/*/*.parquet")
+            .to_string_lossy()
+            .to_string()
+    };
+    run_duckdb_query(app, &sql, &gold_glob, &workspace)
 }
 
 fn run_duckdb_query(
     app: &AppHandle,
     sql: &str,
     gold_glob: &str,
+    workspace: &PathBuf,
 ) -> Result<AnalyticsQueryResult, String> {
     let project_root = resolve_project_root(app);
     let script = project_root.join("parser").join("analytics.py");
@@ -674,7 +689,6 @@ fn run_duckdb_query(
         PathBuf::from("python3")
     };
 
-    let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
     let db_path = workspace.join("analytics.duckdb");
 
     let output = Command::new(python)
@@ -685,6 +699,8 @@ fn run_duckdb_query(
         .arg(gold_glob)
         .arg("--db-path")
         .arg(&db_path)
+        .arg("--workspace")
+        .arg(workspace)
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -693,6 +709,35 @@ fn run_duckdb_query(
     }
 
     serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())
+}
+
+fn ensure_collection_gold_parquet(app: &AppHandle, collection_id: &str) -> Result<(), String> {
+    let files = with_db(app, |conn, _| list_files_for_collection(conn, collection_id))?;
+
+    for file in &files {
+        if file.status != FileStatus::Completed {
+            continue;
+        }
+
+        let workspace = with_db(app, |_, workspace| Ok(workspace.clone()))?;
+        let gold_file = collection_gold_dir(&workspace, collection_id).join(format!("{}.parquet", file.id));
+        if gold_file.exists() {
+            continue;
+        }
+
+        let Some(silver_path) = file.silver_path.as_ref() else {
+            continue;
+        };
+        let silver_json: serde_json::Value = fs::read_to_string(silver_path)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or(serde_json::json!({}));
+        let parser_path = file.parser_path.clone().unwrap_or(crate::models::ParserPath::Ai);
+
+        write_gold_parquet(app, file, &silver_json, &parser_path).map_err(|e| e.detail)?;
+    }
+
+    Ok(())
 }
 
 fn build_table_from_silver(
