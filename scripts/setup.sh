@@ -18,10 +18,14 @@ echo "==> Setting up Python parser..."
 python3 -m venv parser/.venv
 parser/.venv/bin/pip install -r parser/requirements.txt
 
-# Data directories
+# Data directories + SQLite workspace (shared by Tauri and MCP)
 echo "==> Creating data directories..."
 mkdir -p data/bronze data/silver data/gold/domain=finance/year=2026/month=07 data/quarantine
 mkdir -p samples/good samples/bad samples/expected
+
+# Initialize SQLite schema via MCP bridge
+echo "==> Initializing workspace database..."
+parser/.venv/bin/python3 parser/mcp_bridge.py metrics >/dev/null 2>&1 || true
 
 # Env file
 if [ ! -f .env ]; then

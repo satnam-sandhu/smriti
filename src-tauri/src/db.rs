@@ -10,11 +10,7 @@ pub struct DbState {
 }
 
 pub fn init_db(app: &tauri::AppHandle) -> Result<(), String> {
-    let workspace = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| e.to_string())?
-        .join("smriti-workspace");
+    let workspace = resolve_workspace(app);
 
     std::fs::create_dir_all(&workspace).map_err(|e| e.to_string())?;
     std::fs::create_dir_all(workspace.join("bronze")).map_err(|e| e.to_string())?;
@@ -303,4 +299,28 @@ fn parse_parser_path(s: String) -> ParserPath {
     } else {
         ParserPath::Ai
     }
+}
+
+fn resolve_workspace(app: &tauri::AppHandle) -> PathBuf {
+    if let Ok(env_path) = std::env::var("SMRITI_WORKSPACE") {
+        return PathBuf::from(env_path);
+    }
+
+    if let Ok(cwd) = std::env::current_dir() {
+        if cwd.join("parser").join("cli.py").exists() {
+            return cwd.join("data");
+        }
+    }
+
+    if let Ok(resource) = app.path().resource_dir() {
+        let dev_root = resource.join("../../..");
+        if dev_root.join("parser").join("cli.py").exists() {
+            return dev_root.join("data");
+        }
+    }
+
+    app.path()
+        .app_data_dir()
+        .map(|p| p.join("smriti-workspace"))
+        .unwrap_or_else(|_| PathBuf::from("data"))
 }

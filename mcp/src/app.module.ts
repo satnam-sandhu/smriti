@@ -1,12 +1,12 @@
 import { McpApp, Module, ConfigModule } from '@nitrostack/core';
-import { SmritiModule } from './modules/smriti/smriti.module.js';
+import { DocumentIntelligenceModule } from './modules/document-intelligence/document-intelligence.module.js';
 import { SystemHealthCheck } from './health/system.health.js';
 
 @McpApp({
   module: AppModule,
   server: {
     name: 'smriti-mcp',
-    version: '0.1.0',
+    version: '0.2.0',
   },
   logging: {
     level: 'info',
@@ -14,8 +14,8 @@ import { SystemHealthCheck } from './health/system.health.js';
 })
 @Module({
   name: 'app',
-  description: 'Smriti MCP server — document ingestion tools',
-  imports: [ConfigModule.forRoot(), SmritiModule],
+  description: 'Smriti MCP server — document ingestion tools (Full PRD)',
+  imports: [ConfigModule.forRoot(), DocumentIntelligenceModule],
   providers: [SystemHealthCheck],
 })
 export class AppModule {}

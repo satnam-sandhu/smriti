@@ -1,0 +1,5 @@
+Patient ID: P-1001
+Date: 2026-07-01
+Diagnosis: Hypertension
+Medication: Lisinopril 10mg
+Physician: Dr. Smith

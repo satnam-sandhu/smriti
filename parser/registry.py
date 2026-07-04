@@ -47,3 +47,33 @@ def save(fp: str, doc_type: str, dsl: dict) -> None:
             (fp, doc_type, json.dumps(dsl), datetime.now(timezone.utc).isoformat()),
         )
         conn.commit()
+
+
+def list_all() -> list[dict]:
+    with _conn() as conn:
+        rows = conn.execute(
+            "SELECT fingerprint, doc_type, dsl_json, created_at FROM parser_registry ORDER BY created_at DESC"
+        ).fetchall()
+
+    templates = []
+    for fp, doc_type, dsl_json, created_at in rows:
+        dsl = json.loads(dsl_json)
+        if isinstance(dsl.get("fields"), dict):
+            fields = list(dsl["fields"].keys())
+        elif isinstance(dsl.get("columns"), dict):
+            fields = list(dsl["columns"].keys())
+        elif isinstance(dsl.get("extracted"), dict):
+            fields = list(dsl["extracted"].keys())
+        else:
+            fields = []
+        templates.append(
+            {
+                "templateId": fp[:16],
+                "fingerprint": fp,
+                "name": f"{doc_type.title()} Template",
+                "documentType": doc_type,
+                "fields": fields,
+                "createdAt": created_at,
+            }
+        )
+    return templates
