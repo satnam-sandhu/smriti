@@ -73,10 +73,14 @@ export class DocumentIntelligenceService {
     return silverPath;
   }
 
-  private writeGold(documentId: string, silverPath: string): string {
+  private writeGold(documentId: string, silverPath: string): string | null {
     const goldPath = join(WORKSPACE, GOLD_PARTITION, `${documentId}.parquet`);
-    runMcpBridge('write-gold', ['--input', silverPath, '--output', goldPath]);
-    return goldPath;
+    try {
+      runMcpBridge('write-gold', ['--input', silverPath, '--output', goldPath]);
+      return goldPath;
+    } catch {
+      return null;
+    }
   }
 
   private registerFile(

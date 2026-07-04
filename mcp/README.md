@@ -11,6 +11,13 @@ npm run dev:mcp
 
 Connect via [NitroStudio](https://nitrostack.ai/studio) → open the `mcp/` folder.
 
+## Live demo
+
+| Service | URL |
+|---------|-----|
+| **NitroChat (embed)** | https://nitrochat-yyy-6a3e700a-hemants-org-9744dc11.staging.nitrocloud.ai/embed |
+| **MCP server** | https://atlas-mcp-6a47d4fa-biliings-org-7cb21717.dev.nitrocloud.ai |
+
 ## PRD MCP Tools
 
 | Tool | Description |

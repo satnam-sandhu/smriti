@@ -1,5 +1,6 @@
 mod commands;
 mod db;
+mod mcp;
 mod models;
 mod pipeline;
 
@@ -29,6 +30,8 @@ pub fn run() {
             commands::get_file_detail,
             commands::list_files,
             commands::run_analytics_query,
+            commands::mcp_list_tools,
+            commands::mcp_call_tool,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

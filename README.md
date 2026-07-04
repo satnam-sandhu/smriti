@@ -6,6 +6,15 @@ Enterprise multimodal document ingestion — Hackathon MVP (Topic 2).
 
 **Demo plugin:** Finance (Banking) — annual reports, ledgers, bank statements.
 
+## Live demo
+
+| Service | URL |
+|---------|-----|
+| **NitroChat (embed)** | https://nitrochat-yyy-6a3e700a-hemants-org-9744dc11.staging.nitrocloud.ai/embed |
+| **MCP server** | https://atlas-mcp-6a47d4fa-biliings-org-7cb21717.dev.nitrocloud.ai |
+
+In [NitroStudio](https://nitrostack.ai/studio), point the chatbot’s MCP server URL at the MCP link above if tools don’t load in chat.
+
 ## Quick start
 
 ```bash

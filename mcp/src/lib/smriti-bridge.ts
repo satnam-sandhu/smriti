@@ -2,77 +2,53 @@ import { execFileSync } from 'node:child_process';
 import {
   copyFileSync,
   existsSync,
-  mkdirSync,
   readFileSync,
   readdirSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { join, resolve, extname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { GOLD_GLOB, GOLD_PARTITION } from './constants.js';
+import {
+  SMRITI_ROOT,
+  WORKSPACE,
+  bronzeDir,
+  ensureWorkspaceDirs,
+  goldGlob,
+  metricsPath,
+  resolvePython,
+  silverDir,
+  SUPPORTED_EXTENSIONS,
+} from './smriti-paths.js';
+import { runAnalyticsNative, runNativeBridge } from './smriti-bridge-native.js';
 
-const BRIDGE_DIR = dirname(fileURLToPath(import.meta.url));
+export {
+  SMRITI_ROOT,
+  WORKSPACE,
+  bronzeDir,
+  silverDir,
+  goldGlob,
+  quarantineDir,
+  ensureWorkspaceDirs,
+  metricsPath,
+} from './smriti-paths.js';
 
-export const SMRITI_ROOT = process.env.SMRITI_ROOT
-  ? resolve(process.env.SMRITI_ROOT)
-  : resolve(BRIDGE_DIR, '../../..');
-
-export const PYTHON = existsSync(join(SMRITI_ROOT, 'parser/.venv/bin/python3'))
-  ? join(SMRITI_ROOT, 'parser/.venv/bin/python3')
-  : 'python3';
-
-export const WORKSPACE = process.env.SMRITI_WORKSPACE
-  ? resolve(process.env.SMRITI_WORKSPACE)
-  : join(SMRITI_ROOT, 'data');
-
-export const SUPPORTED_EXTENSIONS = new Set([
-  '.txt',
-  '.pdf',
-  '.xlsx',
-  '.xls',
-  '.png',
-  '.jpg',
-  '.jpeg',
-  '.tiff',
+const NATIVE_COMMANDS = new Set([
+  'metrics',
+  'list-plugins',
+  'install-plugin',
+  'list-templates',
+  'list-failures',
+  'register-file',
+  'update-file',
+  'record-failure',
+  'get-document',
+  'search',
+  'classify',
+  'identify',
 ]);
 
-export function bronzeDir() {
-  return join(WORKSPACE, 'bronze');
-}
-
-export function silverDir() {
-  return join(WORKSPACE, 'silver');
-}
-
-export function goldGlob() {
-  return join(WORKSPACE, GOLD_GLOB);
-}
-
-export function quarantineDir() {
-  return join(WORKSPACE, 'quarantine');
-}
-
-export function dbPath() {
-  return join(WORKSPACE, 'smriti.db');
-}
-
-export function pluginPath() {
-  return join(WORKSPACE, 'plugin.json');
-}
-
-export function metricsPath() {
-  return join(WORKSPACE, 'metrics.json');
-}
-
-export function ensureWorkspaceDirs() {
-  mkdirSync(bronzeDir(), { recursive: true });
-  mkdirSync(silverDir(), { recursive: true });
-  mkdirSync(join(WORKSPACE, GOLD_PARTITION), { recursive: true });
-  mkdirSync(quarantineDir(), { recursive: true });
-}
+export const PYTHON = resolvePython();
 
 function bridgeEnv(): NodeJS.ProcessEnv {
   return {
@@ -83,13 +59,33 @@ function bridgeEnv(): NodeJS.ProcessEnv {
   };
 }
 
-export function runMcpBridge(command: string, args: string[] = []): unknown {
+function runPythonBridge(command: string, args: string[] = []): unknown {
+  if (!PYTHON) {
+    throw new Error(
+      'Python parser not available. Set SMRITI_PYTHON or run scripts/setup-cloud-parser.mjs',
+    );
+  }
   const output = execFileSync(
     PYTHON,
     [join(SMRITI_ROOT, 'parser/mcp_bridge.py'), command, ...args],
     { encoding: 'utf-8', cwd: SMRITI_ROOT, env: bridgeEnv() },
   );
   return JSON.parse(output.trim());
+}
+
+export function runMcpBridge(command: string, args: string[] = []): unknown {
+  if (NATIVE_COMMANDS.has(command)) {
+    try {
+      return runNativeBridge(command, args);
+    } catch (err) {
+      if (PYTHON) return runPythonBridge(command, args);
+      throw err;
+    }
+  }
+  if (!PYTHON) {
+    throw new Error(`Command '${command}' requires Python parser (not found on PATH)`);
+  }
+  return runPythonBridge(command, args);
 }
 
 export interface ParserResult {
@@ -100,14 +96,17 @@ export interface ParserResult {
   errorDetail?: string | null;
 }
 
-export function runParser(
-  filePath: string,
-  expectedPath?: string,
-): ParserResult {
-  const args = ['--file', filePath];
-  if (expectedPath && existsSync(expectedPath)) {
-    args.push('--expected', expectedPath);
+export function runParser(filePath: string, expectedPath?: string): ParserResult {
+  if (!PYTHON) {
+    return {
+      parserPath: 'deterministic',
+      silverJson: {},
+      errorCode: 'UNKNOWN_LAYOUT',
+      errorDetail: 'Python parser not available in this environment',
+    };
   }
+  const args = ['--file', filePath];
+  if (expectedPath && existsSync(expectedPath)) args.push('--expected', expectedPath);
   const output = execFileSync(
     PYTHON,
     [join(SMRITI_ROOT, 'parser/cli.py'), ...args],
@@ -120,23 +119,27 @@ export function runAnalytics(sql: string): {
   columns: string[];
   rows: Record<string, unknown>[];
 } {
-  const output = execFileSync(
-    PYTHON,
-    [
-      join(SMRITI_ROOT, 'parser/analytics.py'),
-      '--sql',
-      sql,
-      '--gold-glob',
-      goldGlob(),
-      '--workspace',
-      WORKSPACE,
-    ],
-    { encoding: 'utf-8', cwd: SMRITI_ROOT, env: bridgeEnv() },
-  );
-  return JSON.parse(output.trim()) as {
-    columns: string[];
-    rows: Record<string, unknown>[];
-  };
+  if (PYTHON && existsSync(join(SMRITI_ROOT, 'parser/analytics.py'))) {
+    try {
+      const output = execFileSync(
+        PYTHON,
+        [
+          join(SMRITI_ROOT, 'parser/analytics.py'),
+          '--sql',
+          sql,
+          '--gold-glob',
+          goldGlob(),
+          '--workspace',
+          WORKSPACE,
+        ],
+        { encoding: 'utf-8', cwd: SMRITI_ROOT, env: bridgeEnv() },
+      );
+      return JSON.parse(output.trim()) as { columns: string[]; rows: Record<string, unknown>[] };
+    } catch {
+      /* native fallback */
+    }
+  }
+  return runAnalyticsNative(sql, goldGlob());
 }
 
 export function ingestToBronze(
@@ -148,8 +151,7 @@ export function ingestToBronze(
   const name = filename ?? sourcePath.split('/').pop() ?? 'upload';
   const bronzePath = join(bronzeDir(), `${documentId}_${name}`);
   copyFileSync(sourcePath, bronzePath);
-  const bytes = statSync(bronzePath).size;
-  return { documentId, bronzePath, bytes };
+  return { documentId, bronzePath, bytes: statSync(bronzePath).size };
 }
 
 export function ingestBase64ToBronze(
@@ -167,13 +169,11 @@ export function ingestBase64ToBronze(
 export function walkSupportedFiles(dirPath: string): string[] {
   const results: string[] = [];
   if (!existsSync(dirPath)) return results;
-
   for (const entry of readdirSync(dirPath)) {
     const full = join(dirPath, entry);
     const st = statSync(full);
-    if (st.isDirectory()) {
-      results.push(...walkSupportedFiles(full));
-    } else if (SUPPORTED_EXTENSIONS.has(extname(entry).toLowerCase())) {
+    if (st.isDirectory()) results.push(...walkSupportedFiles(full));
+    else if (SUPPORTED_EXTENSIONS.has(entry.slice(entry.lastIndexOf('.')).toLowerCase())) {
       results.push(full);
     }
   }
@@ -182,8 +182,9 @@ export function walkSupportedFiles(dirPath: string): string[] {
 
 export function readMetricsFile(): Record<string, unknown> | null {
   if (!existsSync(metricsPath())) return null;
-  return JSON.parse(readFileSync(metricsPath(), 'utf-8')) as Record<
-    string,
-    unknown
-  >;
+  return JSON.parse(readFileSync(metricsPath(), 'utf-8')) as Record<string, unknown>;
+}
+
+export function isPythonAvailable(): boolean {
+  return PYTHON !== null;
 }

@@ -147,3 +147,17 @@ pub async fn run_analytics_query(
     .await
     .map_err(|e| e.to_string())?
 }
+
+#[tauri::command]
+pub async fn mcp_list_tools(server_url: String) -> Result<Vec<crate::mcp::McpTool>, String> {
+    crate::mcp::list_tools(&server_url).await
+}
+
+#[tauri::command]
+pub async fn mcp_call_tool(
+    server_url: String,
+    name: String,
+    args: serde_json::Value,
+) -> Result<String, String> {
+    crate::mcp::call_tool(&server_url, &name, args).await
+}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { PipelineMetrics } from "../shared/types";
+import { ChatBotView } from "./components/ChatBotView";
 import { CollectionsView } from "./components/CollectionsView";
 import { PipelineView } from "./components/PipelineView";
 import { ReviewView } from "./components/ReviewView";
@@ -10,12 +11,20 @@ import { SmritiLogo } from "./components/SmritiLogo";
 import { formatBytes } from "./utils/format";
 import "./App.css";
 
-type Tab = "collections" | "review" | "pipeline";
+type Tab = "collections" | "review" | "pipeline" | "chatbot";
 
 function PipelineIcon() {
   return (
     <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ChatBotIcon() {
+  return (
+    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -55,6 +64,10 @@ function App() {
     pipeline: {
       title: "Pipeline",
       subtitle: "Throughput, AI cost, and ingestion activity",
+    },
+    chatbot: {
+      title: "Smriti AI",
+      subtitle: "Ask questions and invoke Smriti MCP tools",
     },
   }[tab];
 
@@ -100,6 +113,14 @@ function App() {
             <PipelineIcon />
             Pipeline
           </button>
+          <button
+            type="button"
+            className={`nav-item ${tab === "chatbot" ? "active" : ""}`}
+            onClick={() => setTab("chatbot")}
+          >
+            <ChatBotIcon />
+            Smriti AI
+          </button>
         </nav>
 
         <div className="sidebar-footer" data-tauri-drag-region={false}>
@@ -116,7 +137,7 @@ function App() {
             <h2 className="topbar-title">{topbar.title}</h2>
             <p className="topbar-subtitle">{topbar.subtitle}</p>
           </div>
-          {metrics && (
+          {metrics && tab !== "chatbot" && (
             <div className="topbar-stats" data-tauri-drag-region={false}>
               <div className="topbar-stat">
                 <span className="topbar-stat-label">Ingested</span>
@@ -138,10 +159,11 @@ function App() {
           )}
         </header>
 
-        <div className="content">
+        <div className={`content ${tab === "chatbot" ? "content-chatbot" : ""}`}>
           {tab === "collections" && <CollectionsView />}
           {tab === "review" && <ReviewView />}
           {tab === "pipeline" && <PipelineView />}
+          {tab === "chatbot" && <ChatBotView />}
         </div>
       </div>
     </div>
