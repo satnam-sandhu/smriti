@@ -1,0 +1,100 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #e2e8f0;
+  background-color: #0f172a;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; }
+#root { min-height: 100vh; }
+
+.app { max-width: 1280px; margin: 0 auto; padding: 1.5rem; }
+.header { margin-bottom: 1.5rem; }
+.header h1 { margin: 0; font-size: 1.75rem; color: #f8fafc; }
+.header p { margin: 0.25rem 0 0; color: #94a3b8; }
+
+.tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.tab {
+  background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+  padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer;
+}
+.tab.active { background: #2563eb; border-color: #2563eb; color: white; }
+
+.dropzone {
+  border: 2px dashed #475569; border-radius: 0.75rem; padding: 2rem;
+  text-align: center; background: #1e293b; cursor: pointer; margin-bottom: 1.5rem;
+}
+.dropzone:hover { border-color: #2563eb; }
+
+.metrics-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+.metric-card {
+  background: #1e293b; border: 1px solid #334155;
+  border-radius: 0.75rem; padding: 1rem;
+}
+.metric-card .label {
+  font-size: 0.75rem; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.metric-card .value {
+  font-size: 1.75rem; font-weight: 700; color: #f8fafc; margin-top: 0.25rem;
+}
+.metric-card .value.good { color: #4ade80; }
+.metric-card .value.warn { color: #fbbf24; }
+.metric-card .value.bad { color: #f87171; }
+
+.file-list, .failures-table {
+  background: #1e293b; border: 1px solid #334155;
+  border-radius: 0.75rem; overflow: hidden;
+}
+.file-list h3, .failures-table h3 {
+  margin: 0; padding: 0.75rem 1rem; border-bottom: 1px solid #334155;
+  font-size: 0.875rem; color: #94a3b8;
+}
+
+table { width: 100%; border-collapse: collapse; }
+th, td {
+  padding: 0.625rem 1rem; text-align: left;
+  border-bottom: 1px solid #334155; font-size: 0.875rem;
+}
+
+.badge {
+  display: inline-block; padding: 0.125rem 0.5rem;
+  border-radius: 9999px; font-size: 0.75rem; font-weight: 600;
+}
+.badge.completed { background: #14532d; color: #4ade80; }
+.badge.failed { background: #7f1d1d; color: #f87171; }
+.badge.processing { background: #713f12; color: #fbbf24; }
+.badge.queued { background: #1e3a5f; color: #60a5fa; }
+.badge.ai { background: #581c87; color: #c084fc; }
+.badge.deterministic { background: #14532d; color: #4ade80; }
+
+.extraction-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.panel {
+  background: #1e293b; border: 1px solid #334155;
+  border-radius: 0.75rem; padding: 1rem; min-height: 300px;
+}
+.panel h3 { margin: 0 0 0.75rem; font-size: 0.875rem; color: #94a3b8; }
+.panel pre {
+  margin: 0; white-space: pre-wrap; word-break: break-word;
+  font-size: 0.75rem; color: #e2e8f0;
+}
+
+.sql-panel {
+  margin-top: 1.5rem; background: #1e293b;
+  border: 1px solid #334155; border-radius: 0.75rem; padding: 1rem;
+}
+.sql-panel textarea {
+  width: 100%; min-height: 80px; background: #0f172a;
+  border: 1px solid #334155; border-radius: 0.5rem; color: #e2e8f0;
+  padding: 0.75rem; font-family: ui-monospace, monospace; font-size: 0.875rem;
+}
+button.primary {
+  background: #2563eb; color: white; border: none;
+  border-radius: 0.5rem; padding: 0.5rem 1rem; cursor: pointer; margin-top: 0.5rem;
+}
+button.primary:hover { background: #1d4ed8; }

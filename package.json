@@ -1,0 +1,34 @@
+{
+  "name": "smriti",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Smriti — Enterprise multimodal document ingestion (Hackathon MVP)",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "dev:web": "vite",
+    "build:web": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "dev:mcp": "npm run dev --prefix mcp",
+    "build:mcp": "npm run build --prefix mcp",
+    "setup": "bash scripts/setup.sh",
+    "setup:parser": "python3 -m venv parser/.venv && parser/.venv/bin/pip install -r parser/requirements.txt"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.8.3",
+    "vite": "^6.0.7"
+  }
+}
